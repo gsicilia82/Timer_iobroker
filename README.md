@@ -1,16 +1,16 @@
 # Timer für ioBroker
 Variable Zeitsteuerung mit VIS Editor und schneller Einrichtung
 
-* [Hauptansicht_der_Timer](#hauptansicht)
+* [Hauptansicht Timer](#hauptansicht)
 * [Bedienung](#bedienung)
-* [PopUp_Editor](#editor)
-* [Konfiguration_Skript](#konf-skript)
-* [Konfiguration_VIS](#konf-vis)
+* [PopUp Editor](#editor)
+* [Konfiguration Skript](#konf-skript)
+* [Konfiguration VIS](#konf-vis)
 * [Weitere Infos](#infos)
 * [Changelog](#changelog)
 
 
-## Hauptansicht für die Timer
+## Hauptansicht Timer
 
 ![MainView](./ReadMe_Images/MainView.png)
 
