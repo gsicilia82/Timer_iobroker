@@ -4,7 +4,7 @@ Variable Zeitsteuerung mit VIS Editor
 
 **Hauptansicht für die Timer:**
 
-Screenshot folgt
+Screenshot folgt...
 
 * Das oberste DropDown dient als Filter für die unten dargestellten Geräte. Nach Skript-Neustart werden immer alle Geräte angezeigt. Wenn der Filter nie genutzt wird, kann das DropDown auch gelöscht werden.
 
