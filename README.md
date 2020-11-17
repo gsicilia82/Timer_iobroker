@@ -111,6 +111,7 @@ Soll ein Gerät neu in die Liste, so kann die Aufzählung damit erweitert werden
 Die Reihenfolge der Timer-Geräte innerhalb der Tabelle kann über das folgende State verändert werden:
 
 ![203c440a-2a48-41db-a854-b785b5f55c23-image.png](/assets/uploads/files/1564327751517-203c440a-2a48-41db-a854-b785b5f55c23-image-resized.png) 
+
 Geänderte Reihenfolge wird erst korrekt angezeigt, wenn ein Timer z.B. aktiviert/deaktiviert wird oder das Skript neu gestartet wurde.
 
 ***
