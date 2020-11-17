@@ -18,7 +18,7 @@ Screenshot folgt...
 
 **Bedienung**
 
-Screenshot folgt
+Screenshot folgt...
 
 Die Haupt-Tabelle mit den dargestellten Timern ist interaktiv:
 * Sobald ein "Device", der "Aktiv-Status" oder die "Ist-Zeit" eines Timers **einmalig** angetippt wird, erscheinen zwei Buttons oben rechts. Es ist möglich, Timer hinzuzufügen (als Kopie des aktuell gewählten Timers) oder Timer zu löschen. Die Buttons verschwinden wieder nach 5s, sodass die Standardansicht immer "ungestört" ist.
