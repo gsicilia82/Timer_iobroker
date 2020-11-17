@@ -1,8 +1,16 @@
 # Timer_iobroker
 Variable Zeitsteuerung mit VIS Editor
 
+* [Hauptansicht_der_Timer](#hauptansicht)
+* [Bedienung](#bedienung)
+* [PopUp_Editor](#editor)
+* [Konfiguration_Skript](#konf-skript)
+* [Konfiguration_VIS](#konf-vis)
+* [Weitere Infos](#infos)
+* [Changelog](#changelog)
 
-**Hauptansicht für die Timer:**
+
+## Hauptansicht für die Timer
 
 ![MainView](./ReadMe_Images/MainView.png)
 
@@ -16,7 +24,7 @@ Variable Zeitsteuerung mit VIS Editor
 
 ***
 
-**Bedienung**
+## Bedienung
 
 ![MainView](./ReadMe_Images/MainViewControl.png)
 
@@ -28,7 +36,7 @@ Die Haupt-Tabelle mit den dargestellten Timern ist interaktiv:
 
 ***
 
-**PopUp-View für die Bearbeitung:**
+## PopUp Editor
 
 ![MainView](./ReadMe_Images/Editor.png)
 
@@ -61,7 +69,7 @@ Es gibt zwei Views, die importiert werden müssen. Zunächst die Hauptansicht un
 
 ***
 
-**Konfiguration im Skript/ioBroker**
+## Konfiguration Skript
 
 Alle **Geräte**, die gesteuert werden sollen, müssen in eine Aufzählung gepackt werden. Es können Objekte mit den Sollwerten "True/False" oder mit numerischen Werten "0 bis 100" eingesetzt werden. In der Aufzählung müssen States (bei Rollläden z.B. die *.level Objekte) vorhanden sein, keine Channels o.ä.
 
@@ -79,7 +87,8 @@ var deviceCond = "enum.functions.timerconditions";
 
 Wenn die Aufzählung für die Bedingungen verändert wird (States werden gelöscht oder hinzugefügt), dann muss nur das Skript neu gestartet werden. Die Auswahl-Liste wird dann neu erstellt.
 
-**Konfiguration VIS/Skript:**
+## Konfiguration VIS
+
 * Die beiden Views werden ganz normal über den Editor importiert. Das Popup-View sollte den Namen **cardTimerEditor** erhalten, ansonsten muss der Verweis im Widget "Edit" des Haupt-Views angepasst werden. Nach dem Import des Haupt-Views wird für den Button "Edit" eine zufällige Widget-Nummer generiert. Diese weicht bei euch ab, daher muss diese Nummer hier im Skript angegeben werden, hier z.B. "w00227":
 (Hinweis: in der VIS wird dieser Button nie sichtbar. Das ist gewollt; das PopUp wird über das Skript mit Klick/Tip auf die Timer geöffnet) 
 ```
@@ -99,7 +108,7 @@ var splitHTML = false;
 ``` 
 
 
-
+## Weitere Infos
 
 Rest läuft soweit, wenn das Skript gestartet wird. Nach dem ersten Start werden Fehler im Log angezeigt (weil states noch nicht existieren). Einfach nochmal starten, dann sollte es fehlerfrei laufen.
 Es können für jedes Gerät bis zu 19 Timer in der VIS erstellt werden. Ein neuer Timer wird immer als Kopie des letzten Timers erstellt (z.B.: Werte in neuen Timer 3 sind eine Kopie aus Timer 2).
@@ -125,7 +134,7 @@ Einige Funktionalitäten der Tabelle können im oberen Bereich der Variablen ver
 
 
 
-# Changelog
+## Changelog
 ***
 **Changelog 18.10.2020 (Skript)**
  * Scroll-Positionen von Main-Tabelle und Editor-Bedingungen werden gespeichert
