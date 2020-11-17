@@ -4,7 +4,8 @@ Variable Zeitsteuerung mit VIS Editor
 
 **Hauptansicht für die Timer:**
 
-![f1242ab0-61b4-45b3-acb0-72c531e46e25-image.png](/assets/uploads/files/1585326002174-f1242ab0-61b4-45b3-acb0-72c531e46e25-image.png) 
+Screenshot folgt
+
 * Das oberste DropDown dient als Filter für die unten dargestellten Geräte. Nach Skript-Neustart werden immer alle Geräte angezeigt. Wenn der Filter nie genutzt wird, kann das DropDown auch gelöscht werden.
 
 * In der Spalte "Bed" werden die Anzahl der hinterlegten Bedingungen angegeben. Die Farbe zeigt an, ob die Bedingungen insgesamt aktuell "true" oder "false" sind. Die States der Bedingungen triggern bei Änderungen sofort das Skript, sodass bei erkannter Änderung die betroffenen Timer neu ausgewertet werden.
@@ -17,7 +18,7 @@ Variable Zeitsteuerung mit VIS Editor
 
 **Bedienung**
 
-![2888cef7-887d-4652-bb49-e284496973da-image.png](/assets/uploads/files/1579467814051-2888cef7-887d-4652-bb49-e284496973da-image.png)
+Screenshot folgt
 
 Die Haupt-Tabelle mit den dargestellten Timern ist interaktiv:
 * Sobald ein "Device", der "Aktiv-Status" oder die "Ist-Zeit" eines Timers **einmalig** angetippt wird, erscheinen zwei Buttons oben rechts. Es ist möglich, Timer hinzuzufügen (als Kopie des aktuell gewählten Timers) oder Timer zu löschen. Die Buttons verschwinden wieder nach 5s, sodass die Standardansicht immer "ungestört" ist.
@@ -29,7 +30,7 @@ Die Haupt-Tabelle mit den dargestellten Timern ist interaktiv:
 
 **PopUp-View für die Bearbeitung:**
 
-![7be029ea-d8c3-4949-8e5a-66e31515665c-image.png](/assets/uploads/files/1596925446238-7be029ea-d8c3-4949-8e5a-66e31515665c-image.png) 
+Screenshot folgt
 
 * Die Einstellung der gewünschten Zeit sollte selbsterklärend sein...
 * Die **Anzahl der Bedingungen** muss über das DropDown gewählt werden. Der rechte Vergleichswert wird "allgemein" über die Tastatur eingegeben. Es müssen ja  beliebige Zahlenwerte oder Zeichen angegeben werden können. Ist der State einer Bedingung in ioBroker als boolean angelegt, wird dies aber automatisch erkannt: als Vergleichswerte werden dann "true" und "false" in einem Dropdown angezeigt. 
@@ -110,7 +111,7 @@ Soll ein Gerät neu in die Liste, so kann die Aufzählung damit erweitert werden
 
 Die Reihenfolge der Timer-Geräte innerhalb der Tabelle kann über das folgende State verändert werden:
 
-![203c440a-2a48-41db-a854-b785b5f55c23-image.png](/assets/uploads/files/1564327751517-203c440a-2a48-41db-a854-b785b5f55c23-image-resized.png) 
+Screenshot folgt
 
 Geänderte Reihenfolge wird erst korrekt angezeigt, wenn ein Timer z.B. aktiviert/deaktiviert wird oder das Skript neu gestartet wurde.
 
