@@ -120,16 +120,12 @@ Bei den Sollwerten sind die beiden Optionen "Auf/Ab" nur Synonyme für die Werte
 Einige Funktionalitäten der Tabelle können im oberen Bereich der Variablen verändert werden, einfach durchscrollen und lesen...
 
 
-# Hier die Dateien
-# [ioBroker-Timer.zip](/assets/uploads/files/1603035020624-iobroker-timer.zip) 
 ***
-
-[s=Changelog]
- **Changelog 18.10.2020 (Skript)**
+ Changelog 18.10.2020 (Skript)
  * Scroll-Positionen von Main-Tabelle und Editor-Bedingungen werden gespeichert
  * Header der Main-Tabelle können über optionale Variable "withHeader" deaktiviert werden
 ***
- **Changelog 11.10.2020 (Editor-View)**
+ Changelog 11.10.2020 (Editor-View)
  * Bugfix bei Buttons Mo - Do, Ursache weiterhin unklar aber nun fehlerfrei
 ***
  Changelog 04.10.2020 (Skript)
