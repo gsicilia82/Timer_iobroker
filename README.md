@@ -4,7 +4,7 @@ Variable Zeitsteuerung mit VIS Editor
 
 **Hauptansicht für die Timer:**
 
-Screenshot folgt...
+![MainView](./ReadMe_Images/MainView.png)
 
 * Das oberste DropDown dient als Filter für die unten dargestellten Geräte. Nach Skript-Neustart werden immer alle Geräte angezeigt. Wenn der Filter nie genutzt wird, kann das DropDown auch gelöscht werden.
 
@@ -18,7 +18,7 @@ Screenshot folgt...
 
 **Bedienung**
 
-Screenshot folgt...
+![MainView](./ReadMe_Images/MainViewControl.png)
 
 Die Haupt-Tabelle mit den dargestellten Timern ist interaktiv:
 * Sobald ein "Device", der "Aktiv-Status" oder die "Ist-Zeit" eines Timers **einmalig** angetippt wird, erscheinen zwei Buttons oben rechts. Es ist möglich, Timer hinzuzufügen (als Kopie des aktuell gewählten Timers) oder Timer zu löschen. Die Buttons verschwinden wieder nach 5s, sodass die Standardansicht immer "ungestört" ist.
@@ -30,7 +30,7 @@ Die Haupt-Tabelle mit den dargestellten Timern ist interaktiv:
 
 **PopUp-View für die Bearbeitung:**
 
-Screenshot folgt
+![MainView](./ReadMe_Images/Editor.png)
 
 * Die Einstellung der gewünschten Zeit sollte selbsterklärend sein...
 * Die **Anzahl der Bedingungen** muss über das DropDown gewählt werden. Der rechte Vergleichswert wird "allgemein" über die Tastatur eingegeben. Es müssen ja  beliebige Zahlenwerte oder Zeichen angegeben werden können. Ist der State einer Bedingung in ioBroker als boolean angelegt, wird dies aber automatisch erkannt: als Vergleichswerte werden dann "true" und "false" in einem Dropdown angezeigt. 
@@ -111,7 +111,7 @@ Soll ein Gerät neu in die Liste, so kann die Aufzählung damit erweitert werden
 
 Die Reihenfolge der Timer-Geräte innerhalb der Tabelle kann über das folgende State verändert werden:
 
-Screenshot folgt
+![MainView](./ReadMe_Images/ChangeOrder.png)
 
 Geänderte Reihenfolge wird erst korrekt angezeigt, wenn ein Timer z.B. aktiviert/deaktiviert wird oder das Skript neu gestartet wurde.
 
