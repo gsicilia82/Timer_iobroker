@@ -1,5 +1,5 @@
-# Timer_iobroker
-Variable Zeitsteuerung mit VIS Editor
+# Timer für ioBroker
+Variable Zeitsteuerung mit VIS Editor und schneller Einrichtung
 
 
 **Hauptansicht für die Timer:**
