@@ -96,6 +96,10 @@ var withHeader = true;
  * * Weitere Infos: https://forum.iobroker.net/topic/23346/vorlage-variable-zeitsteuerung-mit-vis-editor
  * Autor: Giuseppe Sicilia (Forum: GiuseppeS)
  * 
+ * Changelog V1.0.0, 19.11.2020 (Skript)
+ * - Auto-Scroll innerhalb VIS Haupttabelle nun ohne Flackern umgesetzt
+ * - Aktualisierte States werden in Skript übernommen, wenn in Aufzählungen (Devices und/oder Conditions) gleichnamige Namen mit veränderten ioBroker States erkannt werden
+ *  
  * Changelog 18.10.2020 (Skript)
  * - Scroll-Positionen von Main-Tabelle und Editor-Bedingungen werden gespeichert
  * - Header der Main-Tabelle können über optionale Variable "withHeader" deaktiviert werden
@@ -492,7 +496,7 @@ function autoScheduler(TimerJSON, device, nr) {
     var rememberState = TimerJSON[device][nr].RememberTimer;
     var conditionsNr = parseInt(TimerJSON[device][nr].ConditionsNr);
     var sollwert = TimerJSON[device][nr].Sollwert;
-
+    
     // Timer zunächst immer löschen (weil täglich neue Astro-Zeiten und Randoms genutzt werden sollen)
     if (cronArr[scheduleNr]){
         if(stdLog) console.log("Schedule für \"" + device + " #" + nr + "\" [" + scheduleNr + "] gelöscht!");
@@ -861,7 +865,7 @@ function toggleActivation(device, nr) {
     // Schedule setzen bzw. löschen
     TimerJSON[device][nr].ConditionsTrue = condEval(TimerJSON[device][nr]);
     autoScheduler(TimerJSON, device, nr);
-    setState("javascript." + instance + ".Timer." + path + ".TimerJSON", JSON.stringify(TimerJSON)); // rückschreiben in State
+    setState("javascript." + instance + ".Timer." + path + ".TimerJSON", JSON.stringify(TimerJSON), true); // rückschreiben in State
 }
 
 // ENDE DER HILFS-FUNKTIONEN
@@ -890,22 +894,17 @@ function activateTrigger(){
 
     // One-Click Aktion aus Tabelle zur Auswahl des Timers
     on({id: "javascript." + instance + ".Timer." + path + ".clickTarget", change: "any"}, function (obj) {
-    	
-        if (dblClickBlocker) {return}; // Doppelte Ausführung One-Click bei Double-Click vermeiden
-        dblClickBlocker = true;
-        setTimeout(function(){
-            dblClickBlocker = false;
-        }, 600);
-        
+    	var value = obj.state.val;
+        var oldValue = obj.oldState.val;
+
         delFocusOnTimer(true);
 
-        if (debugLog) console.log("Klick aus Tabelle erkannt. Übergebener Wert: " + obj.state.val);
+        if (debugLog) console.log("Klick aus Tabelle erkannt. Übergebener Wert: " + value);
         
         setState("javascript." + instance + ".Timer.ActiveTable", path);
 
-        var tmp = obj.state.val.split("~");
+        var tmp = value.split("~");
         var btnSource = tmp[2]; // Button-Funktion wird eingelesen
-        setState(scrollID, tmp[3]);
 
         // States müssen gesetzt werden, damit die Buttons "Add" und "Del" einen Ziel-Timer haben
         if (tmp[0] != "all") { // "all" ist ein Tag der Überschriften, daher folgt keine Timer-Auswahl
@@ -919,7 +918,7 @@ function activateTrigger(){
                 openEditor(tmp[0], parseInt(tmp[1]));
             }
 
-            if (btnSource == "nr"){ // Aktivieren/Deaktivieren des Timers
+            if (btnSource == "digit" || btnSource == "symb"){ // Aktivieren/Deaktivieren des Timers
                 toggleActivation(tmp[0], parseInt(tmp[1]));
             }
 
@@ -936,7 +935,6 @@ function activateTrigger(){
 
         var tmp = obj.state.val.split("~");
         var btnSource = tmp[2]; // Button-Funktion wird eingelesen
-        setState(scrollID, tmp[3]);
 
         if (btnSource == "dev"){ // Edit-Dialog öffnen bei Doppelklick Geräte-Button
             openEditor(tmp[0], parseInt(tmp[1])); // Parameter: (Device, Nummer)
@@ -948,7 +946,7 @@ function activateTrigger(){
                 openEditor(tmp[0], parseInt(tmp[1]));
             }
 
-            if (btnSource == "nr"){ // Aktivieren/Deaktivieren des Timers
+            if (btnSource == "digit" || btnSource == "symb"){ // Aktivieren/Deaktivieren des Timers
                 toggleActivation(tmp[0], parseInt(tmp[1]));
             }
 
@@ -975,7 +973,7 @@ function activateTrigger(){
 
 
     // Trigger zur Erstellung der Tabelle in VIS
-    on({id: "javascript." + instance + ".Timer." + path + ".TimerJSON", change: "ne"}, function (obj) {
+    on({id: "javascript." + instance + ".Timer." + path + ".TimerJSON", change: "ne", ack: false}, function (obj) {
         tableMain(0);
     });
 
@@ -1048,29 +1046,33 @@ function activateEditorTrigger(){
             TimerJSON[device][nr] = TimerJSON[device][devlen];
             // Falls kopierter Timer aktiv war wird der Neue auch direkt gesetzt
             TimerJSON[device][nr].ConditionsTrue = condEval(TimerJSON[device][nr]);
-            autoScheduler(TimerJSON, device, nr);
+            createState("Timer." + path + ".States." + device + "_" + nr, ( TimerJSON[device][nr].Aktiv ? true : false), false, {type: "boolean", role: "state"}, {device: device, devNr: nr}, () => {
+                autoScheduler(TimerJSON, device, nr);
+            });
             setState("javascript." + instance + ".Timer." + path + ".TimerJSON", JSON.stringify(TimerJSON));  // rückschreiben in State
             setState("javascript." + instance + ".Timer.Editor.Nummer", nr);
         } else {
             // Mittendrin einfügen: Alle Timer darüber um eine Position verschieben
             // -> Timer zunächst deaktivieren, dann verschieben und erneut aktivieren, alte Position löschen
-            for(var j = devlen; j > baseNr; j--){
-                var tmpAktiv = TimerJSON[device][j].Aktiv;
-                TimerJSON[device][j].Aktiv = false
-                TimerJSON[device][j].ConditionsTrue = condEval(TimerJSON[device][j]);
-                autoScheduler(TimerJSON, device, j);
-                TimerJSON[device][j+1] = TimerJSON[device][j];
-                TimerJSON[device][j+1].Aktiv = tmpAktiv;
-                TimerJSON[device][j+1].ConditionsTrue = condEval(TimerJSON[device][j+1]);
-                autoScheduler(TimerJSON, device, j+1);
-                delete TimerJSON[device][j];
-            }
-            nr = baseNr + 1;
-            TimerJSON[device][nr] = TimerJSON[device][baseNr];
-            TimerJSON[device][nr].ConditionsTrue = condEval(TimerJSON[device][nr]);
-            autoScheduler(TimerJSON, device, nr);
-            setState("javascript." + instance + ".Timer." + path + ".TimerJSON", JSON.stringify(TimerJSON));  // rückschreiben in State
-            setState("javascript." + instance + ".Timer.Editor.Nummer", nr);
+            createState("Timer." + path + ".States." + device + "_" + (devlen + 1), false, false, {type: "boolean", role: "state"}, {device: device, devNr: devlen+1}, () => {
+                for(var j = devlen; j > baseNr; j--){
+                    var tmpAktiv = TimerJSON[device][j].Aktiv;
+                    TimerJSON[device][j].Aktiv = false
+                    TimerJSON[device][j].ConditionsTrue = condEval(TimerJSON[device][j]);
+                    autoScheduler(TimerJSON, device, j);
+                    TimerJSON[device][j+1] = TimerJSON[device][j];
+                    TimerJSON[device][j+1].Aktiv = tmpAktiv;
+                    TimerJSON[device][j+1].ConditionsTrue = condEval(TimerJSON[device][j+1]);
+                    autoScheduler(TimerJSON, device, j+1);
+                    delete TimerJSON[device][j];
+                }
+                nr = baseNr + 1;
+                TimerJSON[device][nr] = TimerJSON[device][baseNr];
+                TimerJSON[device][nr].ConditionsTrue = condEval(TimerJSON[device][nr]);
+                autoScheduler(TimerJSON, device, nr);
+                setState("javascript." + instance + ".Timer." + path + ".TimerJSON", JSON.stringify(TimerJSON));  // rückschreiben in State
+                setState("javascript." + instance + ".Timer.Editor.Nummer", nr);
+            });
         }
     });
 
@@ -1110,6 +1112,7 @@ function activateEditorTrigger(){
                     autoScheduler(TimerJSON, device, j);
                 }
             }
+            deleteState("Timer." + path + ".States." + device + "_" + devlen);
             devlen = length(TimerJSON[device]);
             setState("javascript." + instance + ".Timer.Editor.Nummer", devlen);
             setState("javascript." + instance + ".Timer." + path + ".TimerJSON", JSON.stringify(TimerJSON));  // rückschreiben in State
@@ -1131,12 +1134,12 @@ function activateEditorTrigger(){
                 console.log("Device am Ende gefunden")
                 dropDownListe = dropDownListe.replace(";" + device, "");
             }
+            deleteState("Timer." + path + ".States." + device + "_1");
             setState("javascript." + instance + ".Timer." + path + ".DropDownDevice", dropDownListe, true);
             setState("javascript." + instance + ".Timer." + path + ".TimerJSON", JSON.stringify(TimerJSON));  // rückschreiben in State
             setState("javascript." + instance + ".Timer.Editor.Device", Object.keys(TimerJSON)[0]);
             setState("javascript." + instance + ".Timer.Editor.Nummer", 1);
         }
-
     });
     
 
@@ -1559,6 +1562,8 @@ function main () {
             TimerJSON[devName] = jsonCopy(DefaultInhalte);
             TimerJSON[devName][1].ObjID = TimerJSON[devName][2].ObjID = device_members[i];
             TimerJSON[devName][1].DeviceNr = TimerJSON[devName][2].DeviceNr = idCounter;
+            createState("Timer." + path + ".States." + devName + "_1", false, false, {type: "boolean", role: "state"}, {device: devName, devNr: 1});
+            createState("Timer." + path + ".States." + devName + "_2", false, false, {type: "boolean", role: "state"}, {device: devName, devNr: 2});
             if (getObject(device_members[i]).common.type == "boolean"){
                 TimerJSON[devName][1].Sollwert = "An";
                 TimerJSON[devName][2].Sollwert = "Aus";
@@ -1581,25 +1586,54 @@ function main () {
             dropDownListe = dropDownListe.slice(0, dropDownListe.length - 1); // Entfernen letztes Semikolon
             setState("javascript." + instance + ".Timer." + path + ".DropDownDevice", dropDownListe, true);
         }
-        // Check ob neue Device hinzugekommen sind
-        var addedDevice = false;
+        // Check ob neue Device hinzugekommen sind oder IDs der Bedingungen verändert wurden
+        var ConditionJSON = {};
+        for(var i = 0; i < condition_members.length; i++) {
+            var condName = getObject(condition_members[i]).common.name;
+            ConditionJSON[condName] = condition_members[i];
+        }
         for(var i = 0; i < device_members.length; i++) {
             devName = getObject(device_members[i]).common.name;
             if(!TimerJSON.hasOwnProperty(devName)){
-                addedDevice = true;
                 console.log("Device # " + devName + " # fehlt und wird neu hinzugefügt!");
                 // Zunächst DropDownListe für Devices erweitern
                 dropDownListe += ";" + devName;
                 // Device mit DefaultInhalt erstellen
                 TimerJSON[devName] = jsonCopy(DefaultInhalte);
                 TimerJSON[devName][1].ObjID = TimerJSON[devName][2].ObjID = device_members[i];
+                createState("Timer." + path + ".States." + devName + "_1", false, false, {type: "boolean", role: "state"}, {device: devName, devNr: 1});
+                createState("Timer." + path + ".States." + devName + "_2", false, false, {type: "boolean", role: "state"}, {device: devName, devNr: 2});
                 if (getObject(device_members[i]).common.type == "boolean"){
                     TimerJSON[devName][1].Sollwert = "An";
                     TimerJSON[devName][2].Sollwert = "Aus";
                 }
+            } 
+            // Wenn Device bereits vorhanden ist, check nach geänderter ID und neue Anbindung der IDs von Bedingungen
+            else {
+                Object.keys(TimerJSON[devName]).forEach(function(nr) {
+                    // Device ID prüfen und ggf ersetzen
+                    if (TimerJSON[devName][nr]["ObjID"] != device_members[i]) {
+                        console.log("Veränderte ObjID entdeckt: ALT = " + TimerJSON[devName][nr]["ObjID"] + " | NEU = " + device_members[i]);
+                        TimerJSON[devName][nr]["ObjID"] = device_members[i];
+                    }
+                    // Wenn Timer Bedingungen enthält, dann Auswerte-String für Bedingung neu erstellen
+                    var condCount = TimerJSON[devName][nr]["ConditionsNr"];
+                    if (condCount > 0) {
+                        let condName = getObject(condition_members[i]).common.name;
+                        ConditionJSON[condName] = condition_members[i];
+                        for(let j = 1; j <= condCount; j++) {
+                            var CondState = TimerJSON[devName][nr]["Conditions"][j]["CondState"];
+                            var CondComp = TimerJSON[devName][nr]["Conditions"][j]["CondComp"];
+                            var CondValue = TimerJSON[devName][nr]["Conditions"][j]["CondValue"];
+                            TimerJSON[devName][nr]["Conditions"][j]["ConditionStr"] = "getState(\"" + ConditionJSON[CondState] + "\").val " + CondComp + " " + CondValue
+                            
+                        };
+                    }
+                });
             }
         }
-        // Für Erweiterung der JSON-Objekte nach Skript-Update
+        // #############################################
+        // Anpassung der JSON-Objekte nach Skript-Update
         var flagGroup = false
         Object.keys(TimerJSON).forEach(function(key) {
             for(let i = 1; i <= length(TimerJSON[key]); i++) {
@@ -1630,8 +1664,13 @@ function main () {
         if (flagGroup){
             setState("javascript." + instance + ".Timer." + path + ".DropDownGruppe", grpNames, true);
         }
+        // #############################################
+        // Anpassung der States nach Skript-Update #####
 
-        // Ende der Erweiterungen ####################################
+        if (existsState("javascript." + instance + ".Timer." + path + ".ScrollPos")) deleteState("javascript." + instance + ".Timer." + path + ".ScrollPos");
+
+        // Ende der Erweiterungen ######################
+        // #############################################
 
         // Schedules werden immer nach Start des Skripts automatisch erstellt
         // recalc Funktion nicht erlaubt, da JSON in State nicht aktuell sein muss (z.B. neue Devices in Aufzählung erkannt)
@@ -1735,23 +1774,31 @@ function buildTableArray() {
 
 
 // Button überträgt bei Klick den Wert:
-// Pfad~~~Gerät~Timer-Nummer~Funktion
+// Pfad~Gerät~Timer-Nummer~Funktion
 function getButtonCode(buttonVal, buttonText, color){
     var htmlButton;
-    htmlButton = '<button style="'
-		        + 'border:none; '
-		        + 'background-color:transparent; '
-		        + 'color:' + color + '; '
-		        + 'font-size:1.0em; '
-		        + 'text-align:left'
-		        + '" value="' + buttonVal + '"'
+    htmlButton = '<button class="timer-button-' + color + '"'
+		        + 'value="' + buttonVal + '"'
+                + 'id="' + buttonVal + '"'
                 + 'onclick="setOnClick' + path + '(this.value)"'
-                + 'ondblclick="setOnDblClick' + path + '(this.value)">' + buttonText + '</button>';
+                + 'ondblclick="setOnDblClick' + path + '(this.value)"'
+                + '>' + buttonText + '</button>';
+    return htmlButton
+}
+// Button Code für Umschaltung der Timer (on/off)
+function getSwitchButtonCode(buttonVal, buttonText, color){
+    var htmlButton;
+    htmlButton = '<button class="timer-button-' + color + '"'
+		        + 'value="' + buttonVal + '"'
+                + 'id="' + buttonVal + '"'
+                + 'onclick="' + ( !oneClick ? 'setOnClick' : 'switchOnClick') + path + '(this.value)"'
+                + ( !oneClick ? 'ondblclick="switchOnDblClick' + path + '(this.value)"' : '' )
+                + '>' + buttonText + '</button>';
     return htmlButton
 }
 
 // Button überträgt bei Klick den Wert:
-// Pfad~~~Gerät~Timer-Nummer~Funktion
+// Pfad~Gerät~Timer-Nummer~Funktion
 function getFakeButtonCode(buttonText){
     var htmlButton;
     htmlButton = '<button style="'
@@ -1793,6 +1840,9 @@ function jsonToHtml(tabelle, withDevice) {
         + "0%,50% {filter: drop-shadow(0px 0px 4px #F44336) drop-shadow(0px 0px 4px #F44336) drop-shadow(0px 0px 4px #F44336); }\n"
         + "51% {filter: none;}\n"
         + "}\n"
+        + ".timer-button-white { border:none; background-color:transparent; color:white;   font-size:1.0em; text-align:left; }\n"
+        + ".timer-button-red   { border:none; background-color:transparent; color:red;     font-size:1.0em; text-align:left; }\n"
+        + ".timer-button-green { border:none; background-color:transparent; color:#00FF7F; font-size:1.0em; text-align:left; }\n"
         + "</style>\n";
 
     // Prüfen ob aktive Background-Timer existieren, damit "Bed" in Überschrift entsprechend dargestellt werden kann
@@ -1828,9 +1878,9 @@ function jsonToHtml(tabelle, withDevice) {
 
     	html += "<tr>\n"
               + ( withDevice  ? "<td>" + getButtonCode(tabelle[i].Geraet + "~" + tabelle[i].Nr + "~dev", tabelle[i].Geraet, "white") + "</td>\n" : "" )
-              + ( showTimerNr ? "<td>" + getButtonCode(tabelle[i].Geraet + "~" + tabelle[i].Nr + "~nr", tabelle[i].Nr, ( tabelle[i].Aktiv ? "#00FF7F"  : "#FF0000" )) + "</td>\n" : "" )
-              + ( showSymbol  ? "<td>" + getButtonCode(tabelle[i].Geraet + "~" + tabelle[i].Nr + "~nr", ( tabelle[i].Aktiv ? symbEnab : symbDisab ), "white") + "</td>\n" : "" )
-              + ( tabelle[i].CondNr > 0 ? "<td " + tabelle[i].Class + ">" + getButtonCode(tabelle[i].Geraet + "~" + tabelle[i].Nr + "~cond", "*" + tabelle[i].CondNr, ( tabelle[i].CondTrue ? "#00FF7F" : "#FF0000" ) ) + "</td>\n" : "<td> </td>\n" )
+              + ( showTimerNr ? "<td>" + getSwitchButtonCode(tabelle[i].Geraet + "~" + tabelle[i].Nr + "~digit", tabelle[i].Nr, ( tabelle[i].Aktiv ? "green"  : "red" ) ) + "</td>\n" : "" )
+              + ( showSymbol  ? "<td>" + getSwitchButtonCode(tabelle[i].Geraet + "~" + tabelle[i].Nr + "~symb", ( tabelle[i].Aktiv ? symbEnab : symbDisab ), ( tabelle[i].Aktiv ? "green"  : "red" ) ) + "</td>\n" : "" )
+              + ( tabelle[i].CondNr > 0 ? "<td " + tabelle[i].Class + ">" + getButtonCode(tabelle[i].Geraet + "~" + tabelle[i].Nr + "~cond", "*" + tabelle[i].CondNr, ( tabelle[i].CondTrue ? "green" : "red" ) ) + "</td>\n" : "<td> </td>\n" )
               + ( showGroupNr ? "<td>" + tabelle[i].Gruppe + "</td>" : "" )
               + "<td>" + getButtonCode(tabelle[i].Geraet + "~" + tabelle[i].Nr + "~time", tabelle[i].Zeit, "white") + "</td>\n"
               + "<td>" + tabelle[i].Tage + "</td>\n"
@@ -1846,24 +1896,50 @@ function jsonToHtml(tabelle, withDevice) {
     // html-Element der Tabelle ist nach Reload der Seite nicht sofort erreichbar, daher wird es nochmals in Funktionen integriert
     html += '<script>\n'
           + '\n'
-          + 'var targetEle;\n'
-          + 'var scrollID = "' + scrollID + '";\n'
-          + '\n'
-          + 'setTimeout( ()=> {\n'
-          + '   targetEle = $("#tableMain-' + path + '").closest(".vis-tpl-basic-HTML"); \n'
-          + '   targetEle.scrollTop(' + getState(scrollID).val + '); \n'
-          + '}, 5 )\n'
-          + '\n'
           + 'function setOnClick' + path + '(val) {\n'
           + '   var objID = "javascript.' + instance + '.Timer.' + path + '.clickTarget";\n'
-          + '   targetEle = $("#tableMain-' + path + '").closest(".vis-tpl-basic-HTML"); \n'
-          + '   servConn.setState(objID, val + "~" + targetEle.scrollTop() );\n'
+          + '   servConn.setState(objID, val);\n'
           + '}\n'
           + '\n'
           + 'function setOnDblClick' + path + '(val) {\n'
           + '   var objID = "javascript.' + instance + '.Timer.' + path + '.dblClickTarget";\n'
-          + '   targetEle = $("#tableMain-' + path + '").closest(".vis-tpl-basic-HTML"); \n'
-          + '   servConn.setState(objID, val + "~" + targetEle.scrollTop() );\n'
+          + '   servConn.setState(objID, val);\n'
+          + '}\n'
+          + 'function switchOnClick' + path + '(val, recursiveCall=false){\n'
+          + '   var keys = val.split("~")\n'
+          + '   var caller = keys.pop();\n'
+          + '   var elem = document.getElementById(val);\n'
+          + '   if(elem){\n'
+          + '      elem.className = ( elem.className == "timer-button-green" ? "timer-button-red" : "timer-button-green");\n'
+          + '      if (caller == "symb") {\n'
+          + '         var symbEnab = "' + symbEnab + '";\n'
+          + '         var symbDisab = "' + symbDisab + '";\n'
+          + '         elem.innerHTML = ( elem.innerHTML == symbEnab ? symbDisab : symbEnab);\n'
+          + '      }\n'
+          + '   }\n'
+          + '   if (!recursiveCall) {\n'
+          + '      switchOnClick' + path + '(keys.join("~") + (caller == "symb" ? "~digit" : "~symb"), true);\n'
+          + '   } else {\n'
+          + '      setOnClick' + path + '(val)\n'
+          + '   }\n'
+          + '}\n'
+          + 'function switchOnDblClick' + path + '(val, recursiveCall=false){\n'
+          + '   var keys = val.split("~")\n'
+          + '   var caller = keys.pop();\n'
+          + '   var elem = document.getElementById(val);\n'
+          + '   if(elem){\n'
+          + '      elem.className = ( elem.className == "timer-button-green" ? "timer-button-red" : "timer-button-green");\n'
+          + '      if (caller == "symb") {\n'
+          + '         var symbEnab = "' + symbEnab + '";\n'
+          + '         var symbDisab = "' + symbDisab + '";\n'
+          + '         elem.innerHTML = ( elem.innerHTML == symbEnab ? symbDisab : symbEnab);\n'
+          + '      }\n'
+          + '   }\n'
+          + '   if (!recursiveCall) {\n'
+          + '      switchOnDblClick' + path + '(keys.join("~") + (caller == "symb" ? "~digit" : "~symb"), true);\n'
+          + '   } else {\n'
+          + '      setOnDblClick' + path + '(val)\n'
+          + '   }\n'
           + '}\n'
           + '</script>';
 
@@ -1910,3 +1986,4 @@ function tableMain(delay) {
         }
     },delay);
 }
+
