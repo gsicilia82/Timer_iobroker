@@ -135,11 +135,11 @@ Einige Funktionalitäten der Tabelle können im oberen Bereich der Variablen ver
 
 
 ## Changelog
-***
+
 **Changelog V1.0.0, 19.11.2020 (Skript)**
  * Auto-Scroll innerhalb VIS Haupttabelle nun ohne Flackern umgesetzt
  * Aktualisierte States werden in Skript übernommen, wenn in Aufzählungen (Devices und/oder Conditions) gleichnamige Namen mit veränderten ioBroker States erkannt werden
-***
+
 **Changelog 18.10.2020 (Skript)**
  * Scroll-Positionen von Main-Tabelle und Editor-Bedingungen werden gespeichert
  * Header der Main-Tabelle können über optionale Variable "withHeader" deaktiviert werden
