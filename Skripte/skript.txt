@@ -8,10 +8,6 @@ var deviceEnum = "enum.functions.blinds";
 // Eine Aufzählung für States der Bedingungen:
 var deviceCond = "enum.functions.timerconditions";
 
-// Widget-Nummer für Widget "EDIT" (View in Dialog)
-var DlgWidget = 'w00561'
-
-
 /* ####################################################################### */
 // Nachfolgende Einträge nur optional anpassen:
 
@@ -96,7 +92,13 @@ var withHeader = true;
  * * Weitere Infos: https://forum.iobroker.net/topic/23346/vorlage-variable-zeitsteuerung-mit-vis-editor
  * Autor: Giuseppe Sicilia (Forum: GiuseppeS)
  * 
- * Changelog V1.0.0, 19.11.2020 (Skript)
+ * Changelog V1.1.0 20.11.2020 (Skript + VIS(optional)
+ * - Bugfix bei der Scroll-Eigenschaft der Bedingungen im Editor
+ * - Widget-ID des EDIT-Buttons muss oben im Skript nicht mehr angegeben werden.
+ *   Widget-ID wird nun gefunden: Dafür muss im EDIT-Widget unter CSS-Klasse der Eintrag "dialogIdentifier" (ohne "") ergänzt werden.
+ *   !!! Änderung muss bei Update von bestehender Version nicht durchgeführt werden. Abwärtskompatibilität ist gegeben !!!
+ *   
+ * Changelog V1.0.0 19.11.2020 (Skript)
  * - Auto-Scroll innerhalb VIS Haupttabelle nun ohne Flackern umgesetzt
  * - Aktualisierte States werden in Skript übernommen, wenn in Aufzählungen (Devices und/oder Conditions) gleichnamige Namen mit veränderten ioBroker States erkannt werden
  *  
@@ -277,15 +279,17 @@ sollDropDownBool = sollDropDownBool + ";Reset";
 
 // Funktion zum Öffnen/Schließen der Dialogbox (EDIT-PopUp)
 function dialogCtrl(cmd){
+    // Aus Kompatibilität zu älteren Versionen wird nach bereits definierter Variable DlgWidget abgefragt.
+    if (typeof DlgWidget === 'undefined') var DlgWidget = getState("javascript." + instance + ".Timer." + path + ".PopUpWidgetID").val;
     if (cmd == "open"){
-        setState("vis.0.control.data"/*Data for control vis*/, DlgWidget);
+        setState("vis.0.control.data"/*Data for control vis*/, DlgWidget );
         setState('vis.0.control.instance'/*Control vis*/, "FFFFFFFF");
         setState("vis.0.control.command"/*Command for vis*/, 'dialog');
         // Für MaterialDesignWidget
         setState("javascript." + instance + ".Timer." + path + ".MaterialDialogWidgetOpen", true);
     }
     else if (cmd == "close"){
-        setState("vis.0.control.data"/*Data for control vis*/, DlgWidget);
+        setState("vis.0.control.data"/*Data for control vis*/, DlgWidget );
         setState("vis.0.control.command"/*Command for vis*/, 'dialogClose');
         // Für MaterialDesignWidget
         setState("javascript." + instance + ".Timer." + path + ".MaterialDialogWidgetOpen", false);
@@ -804,6 +808,7 @@ function makeCondHtml(toBottom=false){
 
     html += '</tbody></table></body>';
     html += '<script>\n'
+          + 'var targetEleEditor;\n'
           + 'setTimeout( ()=> {\n'
           + '   targetEleEditor = $("#tableEditor-' + path + '").closest(".vis-tpl-basic-HTML");\n'
           + (toBottom ? 'document.getElementById( "bottom" ).scrollIntoView();' : 'targetEleEditor.scrollTop(' + getState(scrollIdEditor).val + '); \n')
@@ -1353,7 +1358,7 @@ function activateEditorTrigger(){
 
 
     // Anzahl Bedingungen geändert
-    EditSubsArr[8] = on({id: "javascript." + instance + ".Timer.Editor.ConditionsNr", change: "any"}, function (obj) {
+    EditSubsArr[8] = on({id: "javascript." + instance + ".Timer.Editor.ConditionsNr", change: "any", ack: false}, function (obj) {
         makeCondHtml(true);
     });
 
@@ -1415,6 +1420,7 @@ createState("Timer." + path + ".DropDownGruppe");
 createState("Timer." + path + ".TimerJSON");
 createState("Timer." + path + ".TableHTML");
 createState("Timer." + path + ".ScrollPos");
+createState("Timer." + path + ".PopUpWidgetID");
 
 createState("Timer.Astro.AstroJSON");
 createState("Timer.Astro.DropDownAstroWerte");
@@ -1896,6 +1902,11 @@ function jsonToHtml(tabelle, withDevice) {
     // html-Element der Tabelle ist nach Reload der Seite nicht sofort erreichbar, daher wird es nochmals in Funktionen integriert
     html += '<script>\n'
           + '\n'
+          + 'setTimeout( ()=> {\n'
+          + '   var targetEditorID = $("#tableMain-' + path + '").closest(".vis-view").children(".dialogIdentifier")[0].id;\n'
+          + '   var objID = "javascript.' + instance + '.Timer.' + path + '.PopUpWidgetID";\n'
+          + '   servConn.setState(objID, targetEditorID);\n'
+          + '}, 1000 )\n'
           + 'function setOnClick' + path + '(val) {\n'
           + '   var objID = "javascript.' + instance + '.Timer.' + path + '.clickTarget";\n'
           + '   servConn.setState(objID, val);\n'
