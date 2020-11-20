@@ -136,7 +136,7 @@ Einige Funktionalitäten der Tabelle können im oberen Bereich der Variablen ver
  * Bugfix bei der Scroll-Eigenschaft der Bedingungen im Editor
  * Widget-ID des EDIT-Buttons muss oben im Skript nicht mehr angegeben werden.
    Widget-ID wird nun gefunden: Dafür muss im EDIT-Widget unter CSS-Klasse der Eintrag "dialogIdentifier" (ohne "") ergänzt werden.
-   !!! Änderung muss bei Update von bestehender Version nicht durchgeführt werden. Abwärtskompatibilität ist gegeben !!!
+   Änderung muss bei Update von bestehender Version nicht durchgeführt werden. Abwärtskompatibilität ist gegeben.
 
 **Changelog V1.0.0 19.11.2020 (Skript)**
  * Auto-Scroll innerhalb VIS Haupttabelle nun ohne Flackern umgesetzt
