@@ -89,12 +89,8 @@ Wenn die Aufzählung für die Bedingungen verändert wird (States werden gelösc
 
 ## Konfiguration VIS
 
-* Die beiden Views werden ganz normal über den Editor importiert. Das Popup-View sollte den Namen **cardTimerEditor** erhalten, ansonsten muss der Verweis im Widget "Edit" des Haupt-Views angepasst werden. Nach dem Import des Haupt-Views wird für den Button "Edit" eine zufällige Widget-Nummer generiert. Diese weicht bei euch ab, daher muss diese Nummer hier im Skript angegeben werden, hier z.B. "w00227":
-(Hinweis: in der VIS wird dieser Button nie sichtbar. Das ist gewollt; das PopUp wird über das Skript mit Klick/Tip auf die Timer geöffnet) 
-```
-// Widget-Nummer für Widget "Timer bearbeiten" (View in Dialog)
-var DlgWidget = 'w00227'
-```
+* Die beiden Views werden ganz normal über den Editor importiert. Das Popup-View sollte den Namen **cardTimerEditor** erhalten, ansonsten muss der Verweis im Widget "Edit" des Haupt-Views angepasst werden.
+
 * Falls das Dialog Widget von Scroungers "Material Design Adapter" verwendet wird, muss für die Steuerung der Dialog-Box das erstellte State "MaterialDialogWidgetOpen" verwendet werden.
 
 * Aktuell wird der HTML Code vollständig in ein State geschrieben, der im HTML Widget der Hauptansicht hinterlegt ist.
@@ -136,7 +132,13 @@ Einige Funktionalitäten der Tabelle können im oberen Bereich der Variablen ver
 
 ## Changelog
 
-**Changelog V1.0.0, 19.11.2020 (Skript)**
+**Changelog V1.1.0 20.11.2020 (Skript + VIS[optional] )**
+ * Bugfix bei der Scroll-Eigenschaft der Bedingungen im Editor
+ * Widget-ID des EDIT-Buttons muss oben im Skript nicht mehr angegeben werden.
+   Widget-ID wird nun gefunden: Dafür muss im EDIT-Widget unter CSS-Klasse der Eintrag "dialogIdentifier" (ohne "") ergänzt werden.
+   !!! Änderung muss bei Update von bestehender Version nicht durchgeführt werden. Abwärtskompatibilität ist gegeben !!!
+
+**Changelog V1.0.0 19.11.2020 (Skript)**
  * Auto-Scroll innerhalb VIS Haupttabelle nun ohne Flackern umgesetzt
  * Aktualisierte States werden in Skript übernommen, wenn in Aufzählungen (Devices und/oder Conditions) gleichnamige Namen mit veränderten ioBroker States erkannt werden
 
