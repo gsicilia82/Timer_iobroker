@@ -147,7 +147,6 @@ Die Werte dieser beiden Variablen sind nur die angezeigten Werte der VIS Tabelle
 
 Der Sollwert aus der VIS wird immer in `sollWertMapping` gesucht. Wird ein Treffer erzielt, wird der VIS-Sollwert ersetzt durch den Mapping-Wert. `Auf` aus der VIS wird somit durch `100` ersetzt; oder `An` durch `true`. Wenn in der Mapping-Variable ergänzt, könnte auch ein Zahlenwert `70` durch `50` ersetzt werden. Wertkorrekturen, z.B. für Rollläden, wären somit möglich. Wird ein VIS-Wert in der Mapping-Liste nicht gefunden, wird dieser VIS-Wert in Richtung Zielgerät geschrieben (so geschehen hier mit allen Zahlenwerten)
 
-
 ***
 
 ## Changelog
@@ -156,6 +155,7 @@ Der Sollwert aus der VIS wird immer in `sollWertMapping` gesucht. Wird ein Treff
 
 * Offsets können nun auch größer 59 Minuten gewählt werden
 * Bugfix: Es wurden unnötige States unter Timer.Devices.States.x erstellt
+* - Alle Widgets im Editor-View benamt
 
 **Changelog V1.1.0 20.11.2020 (Skript + VIS[optional] )**
 
