@@ -132,6 +132,10 @@ Einige Funktionalitäten der Tabelle können im oberen Bereich der Variablen ver
 
 ## Changelog
 
+**Changelog v1.2.0 22.11.2020 (Skript + VIS[optional] )**
+ * Offsets können nun auch größer 59 Minuten gewählt werden
+ * Bugfix: Es wurden unnötige States unter Timer.Devices.States.x erstellt
+
 **Changelog V1.1.0 20.11.2020 (Skript + VIS[optional] )**
  * Bugfix bei der Scroll-Eigenschaft der Bedingungen im Editor
  * Widget-ID des EDIT-Buttons muss oben im Skript nicht mehr angegeben werden.
