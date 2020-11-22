@@ -92,13 +92,17 @@ var withHeader = true;
  * * Weitere Infos: https://forum.iobroker.net/topic/23346/vorlage-variable-zeitsteuerung-mit-vis-editor
  * Autor: Giuseppe Sicilia (Forum: GiuseppeS)
  * 
- * Changelog V1.1.0 20.11.2020 (Skript + VIS(optional)
+ * Changelog v1.2.0 22.11.2020 (Skript)
+ * - Offsets können nun auch größer 59 Minuten gewählt werden
+ * - Bugfix: Es wurden unnötige States unter Timer.Devices.States.x erstellt
+ * 
+ * Changelog v1.1.0 20.11.2020 (Skript + VIS(optional)
  * - Bugfix bei der Scroll-Eigenschaft der Bedingungen im Editor
  * - Widget-ID des EDIT-Buttons muss oben im Skript nicht mehr angegeben werden.
  *   Widget-ID wird nun gefunden: Dafür muss im EDIT-Widget unter CSS-Klasse der Eintrag "dialogIdentifier" (ohne "") ergänzt werden.
  *   !!! Änderung muss bei Update von bestehender Version nicht durchgeführt werden. Abwärtskompatibilität ist gegeben !!!
  *   
- * Changelog V1.0.0 19.11.2020 (Skript)
+ * Changelog v1.0.0 19.11.2020 (Skript)
  * - Auto-Scroll innerhalb VIS Haupttabelle nun ohne Flackern umgesetzt
  * - Aktualisierte States werden in Skript übernommen, wenn in Aufzählungen (Devices und/oder Conditions) gleichnamige Namen mit veränderten ioBroker States erkannt werden
  *  
@@ -643,15 +647,15 @@ function randomTime(min,std,rand,opt) {
 // Input timeJSON aus function randomTime + Offset + Vorzeichen von Offset
 // Output timeJSON mit verrechnetem Offset
 function offsetTime(randJSON,offset,opt) {
-    var min = randJSON.Min, std = randJSON.Std, delta_min = 0;
+    var min = randJSON.Min, std = randJSON.Std, delta_min = 0, delta_std = 0;
     var timeJSON = {"Zeit": "23:59", "Cron": "59 23 * * *", "Std": "23", "Min": "59"};
     if (offset > 0){
-        if (offset > 59) {offset = 59;}
-        if (opt === "p"){ delta_min = offset }
-        if (opt === "m"){ delta_min = -1 * offset}
-    	min += delta_min;
+        if (opt === "p"){ delta_std = Math.trunc(      offset / 60 ); delta_min =      offset - delta_std * 60}
+        if (opt === "m"){ delta_std = Math.trunc( -1 * offset / 60 ); delta_min = -1 * offset - delta_std * 60}
+        min += delta_min;
+        std += delta_std;
     	if (min >= 60){std++;min -= 60;}
-    	else if (min < 0){std--;min += 60;}
+        else if (min < 0){std--;min += 60;}
     	if (std >= 24){std -= 24;}
     	else if (std < 0){std += 24;}
     }
@@ -1051,33 +1055,30 @@ function activateEditorTrigger(){
             TimerJSON[device][nr] = TimerJSON[device][devlen];
             // Falls kopierter Timer aktiv war wird der Neue auch direkt gesetzt
             TimerJSON[device][nr].ConditionsTrue = condEval(TimerJSON[device][nr]);
-            createState("Timer." + path + ".States." + device + "_" + nr, ( TimerJSON[device][nr].Aktiv ? true : false), false, {type: "boolean", role: "state"}, {device: device, devNr: nr}, () => {
-                autoScheduler(TimerJSON, device, nr);
-            });
+            autoScheduler(TimerJSON, device, nr);
+
             setState("javascript." + instance + ".Timer." + path + ".TimerJSON", JSON.stringify(TimerJSON));  // rückschreiben in State
             setState("javascript." + instance + ".Timer.Editor.Nummer", nr);
         } else {
             // Mittendrin einfügen: Alle Timer darüber um eine Position verschieben
             // -> Timer zunächst deaktivieren, dann verschieben und erneut aktivieren, alte Position löschen
-            createState("Timer." + path + ".States." + device + "_" + (devlen + 1), false, false, {type: "boolean", role: "state"}, {device: device, devNr: devlen+1}, () => {
-                for(var j = devlen; j > baseNr; j--){
-                    var tmpAktiv = TimerJSON[device][j].Aktiv;
-                    TimerJSON[device][j].Aktiv = false
-                    TimerJSON[device][j].ConditionsTrue = condEval(TimerJSON[device][j]);
-                    autoScheduler(TimerJSON, device, j);
-                    TimerJSON[device][j+1] = TimerJSON[device][j];
-                    TimerJSON[device][j+1].Aktiv = tmpAktiv;
-                    TimerJSON[device][j+1].ConditionsTrue = condEval(TimerJSON[device][j+1]);
-                    autoScheduler(TimerJSON, device, j+1);
-                    delete TimerJSON[device][j];
-                }
-                nr = baseNr + 1;
-                TimerJSON[device][nr] = TimerJSON[device][baseNr];
-                TimerJSON[device][nr].ConditionsTrue = condEval(TimerJSON[device][nr]);
-                autoScheduler(TimerJSON, device, nr);
-                setState("javascript." + instance + ".Timer." + path + ".TimerJSON", JSON.stringify(TimerJSON));  // rückschreiben in State
-                setState("javascript." + instance + ".Timer.Editor.Nummer", nr);
-            });
+            for(var j = devlen; j > baseNr; j--){
+                var tmpAktiv = TimerJSON[device][j].Aktiv;
+                TimerJSON[device][j].Aktiv = false
+                TimerJSON[device][j].ConditionsTrue = condEval(TimerJSON[device][j]);
+                autoScheduler(TimerJSON, device, j);
+                TimerJSON[device][j+1] = TimerJSON[device][j];
+                TimerJSON[device][j+1].Aktiv = tmpAktiv;
+                TimerJSON[device][j+1].ConditionsTrue = condEval(TimerJSON[device][j+1]);
+                autoScheduler(TimerJSON, device, j+1);
+                delete TimerJSON[device][j];
+            }
+            nr = baseNr + 1;
+            TimerJSON[device][nr] = TimerJSON[device][baseNr];
+            TimerJSON[device][nr].ConditionsTrue = condEval(TimerJSON[device][nr]);
+            autoScheduler(TimerJSON, device, nr);
+            setState("javascript." + instance + ".Timer." + path + ".TimerJSON", JSON.stringify(TimerJSON));  // rückschreiben in State
+            setState("javascript." + instance + ".Timer.Editor.Nummer", nr);
         }
     });
 
@@ -1117,7 +1118,6 @@ function activateEditorTrigger(){
                     autoScheduler(TimerJSON, device, j);
                 }
             }
-            deleteState("Timer." + path + ".States." + device + "_" + devlen);
             devlen = length(TimerJSON[device]);
             setState("javascript." + instance + ".Timer.Editor.Nummer", devlen);
             setState("javascript." + instance + ".Timer." + path + ".TimerJSON", JSON.stringify(TimerJSON));  // rückschreiben in State
@@ -1139,7 +1139,6 @@ function activateEditorTrigger(){
                 console.log("Device am Ende gefunden")
                 dropDownListe = dropDownListe.replace(";" + device, "");
             }
-            deleteState("Timer." + path + ".States." + device + "_1");
             setState("javascript." + instance + ".Timer." + path + ".DropDownDevice", dropDownListe, true);
             setState("javascript." + instance + ".Timer." + path + ".TimerJSON", JSON.stringify(TimerJSON));  // rückschreiben in State
             setState("javascript." + instance + ".Timer.Editor.Device", Object.keys(TimerJSON)[0]);
@@ -1568,8 +1567,6 @@ function main () {
             TimerJSON[devName] = jsonCopy(DefaultInhalte);
             TimerJSON[devName][1].ObjID = TimerJSON[devName][2].ObjID = device_members[i];
             TimerJSON[devName][1].DeviceNr = TimerJSON[devName][2].DeviceNr = idCounter;
-            createState("Timer." + path + ".States." + devName + "_1", false, false, {type: "boolean", role: "state"}, {device: devName, devNr: 1});
-            createState("Timer." + path + ".States." + devName + "_2", false, false, {type: "boolean", role: "state"}, {device: devName, devNr: 2});
             if (getObject(device_members[i]).common.type == "boolean"){
                 TimerJSON[devName][1].Sollwert = "An";
                 TimerJSON[devName][2].Sollwert = "Aus";
@@ -1607,8 +1604,6 @@ function main () {
                 // Device mit DefaultInhalt erstellen
                 TimerJSON[devName] = jsonCopy(DefaultInhalte);
                 TimerJSON[devName][1].ObjID = TimerJSON[devName][2].ObjID = device_members[i];
-                createState("Timer." + path + ".States." + devName + "_1", false, false, {type: "boolean", role: "state"}, {device: devName, devNr: 1});
-                createState("Timer." + path + ".States." + devName + "_2", false, false, {type: "boolean", role: "state"}, {device: devName, devNr: 2});
                 if (getObject(device_members[i]).common.type == "boolean"){
                     TimerJSON[devName][1].Sollwert = "An";
                     TimerJSON[devName][2].Sollwert = "Aus";
