@@ -76,7 +76,7 @@
         "lc-zindex": 0,
         "locked": false,
         "visibility-oid": "javascript.0.Timer.Editor.Astro",
-        "name": "manuellStd"
+        "name": "manuellStdDropdown"
       },
       "style": {
         "left": "182px",
@@ -150,7 +150,7 @@
         "lc-border-radius": 10,
         "lc-zindex": 0,
         "visibility-oid": "javascript.0.Timer.Editor.Astro",
-        "name": "manuellMin"
+        "name": "manuellMinDropdown"
       },
       "style": {
         "left": "247px",
@@ -219,7 +219,8 @@
         "lc-border-style": "",
         "lc-border-color": "",
         "lc-border-radius": 10,
-        "lc-zindex": 0
+        "lc-zindex": 0,
+        "name": "AstroTextfeld"
       },
       "style": {
         "left": "52px",
@@ -291,7 +292,8 @@
         "lc-border-style": "",
         "lc-border-color": "",
         "lc-border-radius": 10,
-        "lc-zindex": 0
+        "lc-zindex": 0,
+        "name": "AstroDropdown"
       },
       "style": {
         "left": "104px",
@@ -363,7 +365,8 @@
         "lc-zindex": 0,
         "no_style": false,
         "class": "mdui-raisedbutton mdui-green-bg noSwipe",
-        "value": "true"
+        "value": "true",
+        "name": "ButtonUebernehmen"
       },
       "style": {
         "left": "calc(100% - 143px)",
@@ -435,7 +438,8 @@
         "lc-border-style": "",
         "lc-border-color": "",
         "lc-border-radius": 10,
-        "lc-zindex": 0
+        "lc-zindex": 0,
+        "name": "RandomDropdown"
       },
       "style": {
         "left": "221px",
@@ -504,7 +508,8 @@
         "lc-border-style": "",
         "lc-border-color": "",
         "lc-border-radius": 10,
-        "lc-zindex": 0
+        "lc-zindex": 0,
+        "name": "RandomTextfeld"
       },
       "style": {
         "left": "52px",
@@ -574,7 +579,8 @@
         "visibility-cond": "==",
         "visibility-val": "manuell",
         "visibility-groups-action": "hide",
-        "visibility-oid": "javascript.0.Timer.Editor.Astro"
+        "visibility-oid": "javascript.0.Timer.Editor.Astro",
+        "name": "ZeiteingabeTextfeld"
       },
       "style": {
         "left": "52px",
@@ -646,7 +652,8 @@
         "lc-border-style": "",
         "lc-border-color": "",
         "lc-border-radius": 10,
-        "lc-zindex": 0
+        "lc-zindex": 0,
+        "name": "SollwertDropdown"
       },
       "style": {
         "left": "182px",
@@ -715,7 +722,8 @@
         "lc-border-style": "",
         "lc-border-color": "",
         "lc-border-radius": 10,
-        "lc-zindex": 0
+        "lc-zindex": 0,
+        "name": "SollwertTextfeld"
       },
       "style": {
         "left": "52px",
@@ -786,7 +794,8 @@
         "locked": false,
         "visibility-cond": "==",
         "visibility-val": 1,
-        "visibility-groups-action": "hide"
+        "visibility-groups-action": "hide",
+        "name": "RandomVorzeichen"
       },
       "style": {
         "left": "117px",
@@ -812,8 +821,8 @@
         "visibility-cond": "!=",
         "visibility-val": "manuell",
         "visibility-groups-action": "hide",
-        "values": "0;1;2;3;4;5;6;7;8;9;10;15;20;30;45;59",
-        "texts": "0 min;1 min;2 min;3 min;4 min;5 min;6 min;7 min;8 min;9 min;10 min;15 min;20 min;30 min;45 min;59 min",
+        "values": "0;1;2;3;4;5;6;7;8;9;10;15;20;30;45;60;90;120;150;180",
+        "texts": "0 min;1 min;2 min;3 min;4 min;5 min;6 min;7 min;8 min;9 min;10 min;15 min;20 min;30 min;45 min;60 min;90 min;120 min;150 min;180 min",
         "height": "100",
         "signals-cond-0": "==",
         "signals-val-0": true,
@@ -859,7 +868,8 @@
         "lc-border-color": "",
         "lc-border-radius": 10,
         "lc-zindex": 0,
-        "visibility-oid": "javascript.0.Timer.Editor.Astro"
+        "visibility-oid": "javascript.0.Timer.Editor.Astro",
+        "name": "OffsetDropdown"
       },
       "style": {
         "left": "221px",
@@ -931,7 +941,8 @@
         "visibility-cond": "!=",
         "visibility-val": "manuell",
         "visibility-groups-action": "hide",
-        "visibility-oid": "javascript.0.Timer.Editor.Astro"
+        "visibility-oid": "javascript.0.Timer.Editor.Astro",
+        "name": "OffsetVorzeichen"
       },
       "style": {
         "left": "117px",
@@ -1001,7 +1012,8 @@
         "lc-border-color": "",
         "lc-border-radius": 10,
         "lc-zindex": 0,
-        "visibility-oid": "javascript.0.Timer.Editor.Astro"
+        "visibility-oid": "javascript.0.Timer.Editor.Astro",
+        "name": "OffsetTextfeld"
       },
       "style": {
         "left": "52px",
@@ -1143,7 +1155,8 @@
         "lc-border-style": "",
         "lc-border-color": "",
         "lc-border-radius": 10,
-        "lc-zindex": 0
+        "lc-zindex": 0,
+        "name": "GruppeTextfeld"
       },
       "style": {
         "left": "13px",
@@ -1215,7 +1228,8 @@
         "lc-zindex": 0,
         "visibility-cond": "==",
         "visibility-val": 1,
-        "visibility-groups-action": "hide"
+        "visibility-groups-action": "hide",
+        "name": "GruppeDropdown"
       },
       "style": {
         "left": "91px",
@@ -1284,7 +1298,8 @@
         "lc-border-style": "",
         "lc-border-color": "",
         "lc-border-radius": 10,
-        "lc-zindex": 0
+        "lc-zindex": 0,
+        "name": "TimerUeberschrift"
       },
       "style": {
         "left": "13px",
@@ -1356,7 +1371,8 @@
         "lc-zindex": 0,
         "visibility-cond": "==",
         "visibility-val": 1,
-        "visibility-groups-action": "hide"
+        "visibility-groups-action": "hide",
+        "name": "BedingungenDropdown"
       },
       "style": {
         "left": "286px",
@@ -1425,7 +1441,8 @@
         "lc-border-style": "",
         "lc-border-color": "",
         "lc-border-radius": 10,
-        "lc-zindex": 0
+        "lc-zindex": 0,
+        "name": "BedingungenTextfeld"
       },
       "style": {
         "left": "185px",
@@ -1496,7 +1513,8 @@
         "lc-border-color": "",
         "lc-border-radius": 10,
         "lc-zindex": 0,
-        "visibility-oid": "javascript.0.Timer.Editor.ConditionsNr"
+        "visibility-oid": "javascript.0.Timer.Editor.ConditionsNr",
+        "name": "TimerMerkenSwitch"
       },
       "style": {
         "left": "117px",
@@ -1566,7 +1584,8 @@
         "lc-border-color": "",
         "lc-border-radius": 10,
         "lc-zindex": 0,
-        "visibility-oid": "javascript.0.Timer.Editor.ConditionsNr"
+        "visibility-oid": "javascript.0.Timer.Editor.ConditionsNr",
+        "name": "TimerMerkenTextfeld"
       },
       "style": {
         "left": "13px",
@@ -1581,7 +1600,7 @@
       "tpl": "tplValueBoolCtrl",
       "data": {
         "oid": "javascript.0.Timer.Editor.So",
-        "g_fixed": false,
+        "g_fixed": true,
         "g_visibility": false,
         "g_css_font_text": false,
         "g_css_background": false,
@@ -1636,7 +1655,8 @@
         "lc-border-radius": 10,
         "lc-zindex": 0,
         "html_false": "<div style=\"text-align:center;font-size:1.7em;color:red;font-weight:bold\">So</div>",
-        "html_true": "<div style=\"text-align:center;font-size:1.7em;color:green;font-weight:bold\">So</div>"
+        "html_true": "<div style=\"text-align:center;font-size:1.7em;color:green;font-weight:bold\">So</div>",
+        "name": "Wochentag So"
       },
       "style": {
         "left": "300px",
@@ -1651,7 +1671,7 @@
       "tpl": "tplValueBoolCtrl",
       "data": {
         "oid": "javascript.0.Timer.Editor.Sa",
-        "g_fixed": false,
+        "g_fixed": true,
         "g_visibility": false,
         "g_css_font_text": false,
         "g_css_background": false,
@@ -1706,7 +1726,8 @@
         "lc-border-radius": 10,
         "lc-zindex": 0,
         "html_false": "<div style=\"text-align:center;font-size:1.7em;color:red;font-weight:bold\">Sa</div>",
-        "html_true": "<div style=\"text-align:center;font-size:1.7em;color:green;font-weight:bold\">Sa</div>"
+        "html_true": "<div style=\"text-align:center;font-size:1.7em;color:green;font-weight:bold\">Sa</div>",
+        "name": "Wochentag Sa"
       },
       "style": {
         "left": "253px",
@@ -1721,7 +1742,7 @@
       "tpl": "tplValueBoolCtrl",
       "data": {
         "oid": "javascript.0.Timer.Editor.Fr",
-        "g_fixed": false,
+        "g_fixed": true,
         "g_visibility": false,
         "g_css_font_text": false,
         "g_css_background": false,
@@ -1776,7 +1797,8 @@
         "lc-border-radius": 10,
         "lc-zindex": 0,
         "html_false": "<div style=\"text-align:center;font-size:1.7em;color:red;font-weight:bold\">Fr</div>",
-        "html_true": "<div style=\"text-align:center;font-size:1.7em;color:green;font-weight:bold\">Fr</div>"
+        "html_true": "<div style=\"text-align:center;font-size:1.7em;color:green;font-weight:bold\">Fr</div>",
+        "name": "Wochentag Fr"
       },
       "style": {
         "left": "205px",
@@ -1921,7 +1943,8 @@
         "lc-zindex": 0,
         "no_style": false,
         "class": "mdui-raisedbutton mdui-black-bg noSwipe",
-        "value": "true"
+        "value": "true",
+        "name": "ButtonAbbrechen"
       },
       "style": {
         "left": "13px",
@@ -1992,7 +2015,8 @@
         "lc-border-color": "",
         "lc-border-radius": 10,
         "lc-zindex": 0,
-        "visibility-oid": "javascript.0.Timer.Editor.ConditionsNr"
+        "visibility-oid": "javascript.0.Timer.Editor.ConditionsNr",
+        "name": "GruppeUebernehmenBedingungen"
       },
       "style": {
         "left": "286px",
@@ -2062,7 +2086,8 @@
         "lc-border-color": "",
         "lc-border-radius": 10,
         "lc-zindex": 0,
-        "visibility-oid": "javascript.0.Timer.Editor.ConditionsNr"
+        "visibility-oid": "javascript.0.Timer.Editor.ConditionsNr",
+        "name": "GruppeUebernehmenBedingungenTextfeld"
       },
       "style": {
         "left": "13px",
@@ -2132,7 +2157,8 @@
         "lc-border-style": "",
         "lc-border-color": "",
         "lc-border-radius": 10,
-        "lc-zindex": 0
+        "lc-zindex": 0,
+        "name": "GruppeUebernehmenZeiten"
       },
       "style": {
         "left": "286px",
@@ -2201,7 +2227,8 @@
         "lc-border-style": "",
         "lc-border-color": "",
         "lc-border-radius": 10,
-        "lc-zindex": 0
+        "lc-zindex": 0,
+        "name": "GruppeUebernehmenZeitenTextfeld"
       },
       "style": {
         "left": "13px",
@@ -2271,7 +2298,8 @@
         "lc-border-radius": 10,
         "lc-zindex": 0,
         "html": "{javascript.0.Timer.Editor.ConditionsHtml}",
-        "class": "condtest"
+        "class": "condtest",
+        "name": "BedingungenHTML"
       },
       "style": {
         "left": "0px",
@@ -2287,7 +2315,7 @@
       "tpl": "tplValueBoolCtrl",
       "data": {
         "oid": "javascript.0.Timer.Editor.Mo",
-        "g_fixed": false,
+        "g_fixed": true,
         "g_visibility": false,
         "g_css_font_text": false,
         "g_css_background": false,
@@ -2343,7 +2371,8 @@
         "lc-zindex": 0,
         "html_false": "<div style=\"text-align:center;font-size:1.7em;color:red;font-weight:bold\">Mo</div>",
         "html_true": "<div style=\"text-align:center;font-size:1.7em;color:green;font-weight:bold\">Mo</div>",
-        "html_append": ""
+        "html_append": "",
+        "name": "Wochentag Mo"
       },
       "style": {
         "left": "13px",
@@ -2358,7 +2387,7 @@
       "tpl": "tplValueBoolCtrl",
       "data": {
         "oid": "javascript.0.Timer.Editor.Di",
-        "g_fixed": false,
+        "g_fixed": true,
         "g_visibility": false,
         "g_css_font_text": false,
         "g_css_background": false,
@@ -2413,7 +2442,8 @@
         "lc-border-radius": 10,
         "lc-zindex": 0,
         "html_false": "<div style=\"text-align:center;font-size:1.7em;color:red;font-weight:bold\">Di</div>",
-        "html_true": "<div style=\"text-align:center;font-size:1.7em;color:green;font-weight:bold\">Di</div>"
+        "html_true": "<div style=\"text-align:center;font-size:1.7em;color:green;font-weight:bold\">Di</div>",
+        "name": "Wochentag Di"
       },
       "style": {
         "left": "61px",
@@ -2428,7 +2458,7 @@
       "tpl": "tplValueBoolCtrl",
       "data": {
         "oid": "javascript.0.Timer.Editor.Mi",
-        "g_fixed": false,
+        "g_fixed": true,
         "g_visibility": false,
         "g_css_font_text": false,
         "g_css_background": false,
@@ -2483,7 +2513,8 @@
         "lc-border-radius": 10,
         "lc-zindex": 0,
         "html_false": "<div style=\"text-align:center;font-size:1.7em;color:red;font-weight:bold\">Mi</div>",
-        "html_true": "<div style=\"text-align:center;font-size:1.7em;color:green;font-weight:bold\">Mi</div>"
+        "html_true": "<div style=\"text-align:center;font-size:1.7em;color:green;font-weight:bold\">Mi</div>",
+        "name": "Wochentag Mi"
       },
       "style": {
         "left": "108px",
@@ -2498,7 +2529,7 @@
       "tpl": "tplValueBoolCtrl",
       "data": {
         "oid": "javascript.0.Timer.Editor.Do",
-        "g_fixed": false,
+        "g_fixed": true,
         "g_visibility": false,
         "g_css_font_text": false,
         "g_css_background": false,
@@ -2553,7 +2584,8 @@
         "lc-border-radius": 10,
         "lc-zindex": 0,
         "html_false": "<div style=\"text-align:center;font-size:1.7em;color:red;font-weight:bold\">Do</div>",
-        "html_true": "<div style=\"text-align:center;font-size:1.7em;color:green;font-weight:bold\">Do</div>"
+        "html_true": "<div style=\"text-align:center;font-size:1.7em;color:green;font-weight:bold\">Do</div>",
+        "name": "Wochentag Do"
       },
       "style": {
         "left": "156px",
