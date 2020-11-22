@@ -129,7 +129,7 @@ Einige Funktionalitäten der Tabelle können im oberen Bereich der Variablen ver
 
 
 
-
+***
 ## Changelog
 
 **Changelog v1.2.0 22.11.2020 (Skript + VIS[optional] )**
