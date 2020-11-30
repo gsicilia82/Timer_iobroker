@@ -76,11 +76,11 @@ var sendWithOffset = 200;
 var bgTimerWithRandom = true;
 
 // Haupt-Style für HTML der Bedingungen
-var condStyle = '[class*="timer-select-css"] {display: block;font-weight: 700;color: #fff;line-height: 1.0;'
-              + 'padding: .5em .5em .5em .5em;width: 100%;max-width: 100%;box-sizing: border-box;'
-              + 'margin: 0;border: 1px solid #fff;box-shadow: 0 1px 0 1px rgba(0,0,0,.04);border-radius: .5em;'
-              + '-moz-appearance: none;-webkit-appearance: none;appearance: none;background-color: rgba(0,0,0,0.1);'
-              + 'background-repeat: no-repeat, repeat;background-position: right .7em top 50%, 0 0;background-size: .65em auto, 100%;}';
+var condStyle = `[class*="timer-select-css"] {display: block;font-weight: 700;color: #fff;line-height: 1.0;
+                padding: .5em .5em .5em .5em;width: 100%;max-width: 100%;box-sizing: border-box;
+                margin: 0;border: 1px solid #fff;box-shadow: 0 1px 0 1px rgba(0,0,0,.04);border-radius: .5em;
+                -moz-appearance: none;-webkit-appearance: none;appearance: none;background-color: rgba(0,0,0,0.1);
+                background-repeat: no-repeat, repeat;background-position: right .7em top 50%, 0 0;background-size: .65em auto, 100%;}`;
 
 // Main Tabelle mit Header anzeigen?
 var withHeader = true;
@@ -91,6 +91,10 @@ var withHeader = true;
 /**
  * * Weitere Infos: https://forum.iobroker.net/topic/23346/vorlage-variable-zeitsteuerung-mit-vis-editor
  * Autor: Giuseppe Sicilia (Forum: GiuseppeS)
+ * 
+ * Changelog v1.2.1 30.11.2020 (Skript)
+ * - Bugfix: Updates der IDs von Bedingungen funktioniert nun ohne Fehlermeldung
+ * - Lange String Passagen durch Backtick Strings ersetzt (Code besser zu lesen)
  * 
  * Changelog v1.2.0 22.11.2020 (Skript)
  * - Offsets können nun auch größer 59 Minuten gewählt werden
@@ -269,11 +273,11 @@ if (typeof oneClick === 'undefined') var oneClick = false;
 if (typeof logSuffix === 'undefined') var logSuffix = "";
 if (typeof sendWithOffset === 'undefined') var sendWithOffset = 200;
 if (typeof bgTimerWithRandom === 'undefined') var bgTimerWithRandom = false;
-if (typeof condStyle === 'undefined') var condStyle = '[class*="timer-select-css"] {display: block;font-weight: 700;color: #fff;line-height: 1.0;'
-                                                    + 'padding: .5em .5em .5em .5em;width: 100%;max-width: 100%;box-sizing: border-box;'
-                                                    + 'margin: 0;border: 1px solid #fff;box-shadow: 0 1px 0 1px rgba(0,0,0,.04);border-radius: .5em;'
-                                                    + '-moz-appearance: none;-webkit-appearance: none;appearance: none;background-color: rgba(0,0,0,0.1);'
-                                                    + 'background-repeat: no-repeat, repeat;background-position: right .7em top 50%, 0 0;background-size: .65em auto, 100%;}';
+if (typeof condStyle === 'undefined') var condStyle = `[class*="timer-select-css"] {display: block;font-weight: 700;color: #fff;line-height: 1.0;
+                                                        padding: .5em .5em .5em .5em;width: 100%;max-width: 100%;box-sizing: border-box;
+                                                        margin: 0;border: 1px solid #fff;box-shadow: 0 1px 0 1px rgba(0,0,0,.04);border-radius: .5em;
+                                                        -moz-appearance: none;-webkit-appearance: none;appearance: none;background-color: rgba(0,0,0,0.1);
+                                                        background-repeat: no-repeat, repeat;background-position: right .7em top 50%, 0 0;background-size: .65em auto, 100%;}`;
 if (typeof withHeader === 'undefined') var withHeader = true;
 
 
@@ -763,14 +767,15 @@ function makeCondHtml(toBottom=false){
 
     let countCond = getState("javascript." + instance + ".Timer.Editor.ConditionsNr").val;
 
-    let html = '<style>'
-             + condStyle
-             + '.timer-select-css:focus {color: #fff;background-color: rgba(0,0,0,0.9);}'
-             + '.timer-select-css-green:focus {color: #fff;background-color: rgba(0,0,0,0.9);}'
-             + '.timer-select-css-red:focus {color: #fff;background-color: rgba(0,0,0,0.9);}'
-             + '.timer-select-css-red {border: 1px solid #f00;color: #FF0000;}'
-             + '.timer-select-css-green {border: 1px solid #00FF7F;color: #00FF7F;}'
-             + '</style>';
+    let html = `
+            <style>
+              ${condStyle}
+             .timer-select-css:focus {color: #fff;background-color: rgba(0,0,0,0.9);}
+             .timer-select-css-green:focus {color: #fff;background-color: rgba(0,0,0,0.9);}
+             .timer-select-css-red:focus {color: #fff;background-color: rgba(0,0,0,0.9);}
+             .timer-select-css-red {border: 1px solid #f00;color: #FF0000;}
+             .timer-select-css-green {border: 1px solid #00FF7F;color: #00FF7F;}
+            </style>`;
 
     html += '<body><table id=tableEditor-' + path + ' style="font-size:1em;width:100%;table-layout:fixed;"><tbody>';
 
@@ -811,16 +816,18 @@ function makeCondHtml(toBottom=false){
     }
 
     html += '</tbody></table></body>';
-    html += '<script>\n'
-          + 'var targetEleEditor;\n'
-          + 'setTimeout( ()=> {\n'
-          + '   targetEleEditor = $("#tableEditor-' + path + '").closest(".vis-tpl-basic-HTML");\n'
-          + (toBottom ? 'document.getElementById( "bottom" ).scrollIntoView();' : 'targetEleEditor.scrollTop(' + getState(scrollIdEditor).val + '); \n')
-          + '}, 20 )\n'
-          + 'function setOnEdit' + path + '(val) {\n'
-          + '   var objID = "javascript.' + instance + '.Timer.Editor.ClickTarget";\n'
-          + '   servConn.setState(objID, val + "~" + targetEleEditor.scrollTop() );}\n'
-          + '</script>';
+    
+    html += `
+        <script>
+            var targetEleEditor;
+            setTimeout( ()=> {
+                targetEleEditor = $("#tableEditor-${path}").closest(".vis-tpl-basic-HTML");
+                ${toBottom ? 'document.getElementById( "bottom" ).scrollIntoView();' : `targetEleEditor.scrollTop(${getState(scrollIdEditor).val});` }
+            }, 20 )
+            function setOnEdit${path}(val) {
+                var objID = "javascript.${instance}.Timer.Editor.ClickTarget";
+                servConn.setState(objID, val + "~" + targetEleEditor.scrollTop() );}
+        </script>`;
 
     setState("javascript." + instance + ".Timer.Editor.ConditionsHtml", html);
 }
@@ -1620,8 +1627,8 @@ function main () {
                     // Wenn Timer Bedingungen enthält, dann Auswerte-String für Bedingung neu erstellen
                     var condCount = TimerJSON[devName][nr]["ConditionsNr"];
                     if (condCount > 0) {
-                        let condName = getObject(condition_members[i]).common.name;
-                        ConditionJSON[condName] = condition_members[i];
+                        //let condName = getObject(condition_members[i]).common.name;
+                        //ConditionJSON[condName] = condition_members[i];
                         for(let j = 1; j <= condCount; j++) {
                             var CondState = TimerJSON[devName][nr]["Conditions"][j]["CondState"];
                             var CondComp = TimerJSON[devName][nr]["Conditions"][j]["CondComp"];
@@ -1777,38 +1784,19 @@ function buildTableArray() {
 // Button überträgt bei Klick den Wert:
 // Pfad~Gerät~Timer-Nummer~Funktion
 function getButtonCode(buttonVal, buttonText, color){
-    var htmlButton;
-    htmlButton = '<button class="timer-button-' + color + '"'
-		        + 'value="' + buttonVal + '"'
-                + 'id="' + buttonVal + '"'
-                + 'onclick="setOnClick' + path + '(this.value)"'
-                + 'ondblclick="setOnDblClick' + path + '(this.value)"'
-                + '>' + buttonText + '</button>';
-    return htmlButton
+    return `<button class="timer-button-${color}" value="${buttonVal}" id="${buttonVal}" onclick="setOnClick${path}(this.value)" ondblclick="setOnDblClick${path}(this.value)" >${buttonText}</button>`;
 }
+
 // Button Code für Umschaltung der Timer (on/off)
 function getSwitchButtonCode(buttonVal, buttonText, color){
-    var htmlButton;
-    htmlButton = '<button class="timer-button-' + color + '"'
-		        + 'value="' + buttonVal + '"'
-                + 'id="' + buttonVal + '"'
-                + 'onclick="' + ( !oneClick ? 'setOnClick' : 'switchOnClick') + path + '(this.value)"'
-                + ( !oneClick ? 'ondblclick="switchOnDblClick' + path + '(this.value)"' : '' )
-                + '>' + buttonText + '</button>';
-    return htmlButton
+    return `<button class="timer-button-${color}" value="${buttonVal}" id="${buttonVal}" onclick="${ !oneClick ? 'setOnClick' : 'switchOnClick'}${path}(this.value)"
+            ${ !oneClick ? 'ondblclick="switchOnDblClick' + path + '(this.value)"' : '' }>${buttonText}</button>`;
 }
 
 // Button überträgt bei Klick den Wert:
 // Pfad~Gerät~Timer-Nummer~Funktion
 function getFakeButtonCode(buttonText){
-    var htmlButton;
-    htmlButton = '<button style="'
-		        + 'border:none; '
-		        + 'background-color:transparent; '
-                + 'color:white; '
-		        + 'font-size:1.0em; '
-		        + 'text-align:left" >' + buttonText + '</button>'
-    return htmlButton
+    return `<button style="border:none; background-color:transparent; color:white; font-size:1.0em; text-align:left" >${buttonText}</button>`;
 }
 
 
@@ -1820,31 +1808,32 @@ function jsonToHtml(tabelle, withDevice) {
     var backgroundTimerExists = false;
 
     // Klasse für das Blinken der Bedingungen wenn Timer im Hintergrund
-    html = "<style>\n"
-        + ".timer-remember-green-glow {\n"
-        + "filter: drop-shadow(0px 0px 2px #4CAF50) drop-shadow(0px 0px 2px #4CAF50) drop-shadow(0px 0px 4px #4CAF50)\n"
-        + "}\n"
-        + ".timer-remember-red-glow {\n"
-        + "filter: drop-shadow(0px 0px 2px #F44336) drop-shadow(0px 0px 2px #F44336) drop-shadow(0px 0px 4px #F44336)\n"
-        + "}\n"
-        + ".timer-remember-green-blink {\n"
-        + "animation: timer-remember-green-blink-ani 1s linear infinite;\n"
-        + "}\n"
-        + ".timer-remember-red-blink {\n"
-        + "animation: timer-remember-red-blink-ani 1s linear infinite;\n"
-        + "}\n"
-        + "@keyframes timer-remember-green-blink-ani {\n"
-        + "0%,50% {filter: drop-shadow(0px 0px 4px #4CAF50) drop-shadow(0px 0px 4px #4CAF50) drop-shadow(0px 0px 4px #4CAF50); }\n"
-        + "51% {filter: none;}\n"
-        + "}\n"
-        + "@keyframes timer-remember-red-blink-ani {\n"
-        + "0%,50% {filter: drop-shadow(0px 0px 4px #F44336) drop-shadow(0px 0px 4px #F44336) drop-shadow(0px 0px 4px #F44336); }\n"
-        + "51% {filter: none;}\n"
-        + "}\n"
-        + ".timer-button-white { border:none; background-color:transparent; color:white;   font-size:1.0em; text-align:left; }\n"
-        + ".timer-button-red   { border:none; background-color:transparent; color:red;     font-size:1.0em; text-align:left; }\n"
-        + ".timer-button-green { border:none; background-color:transparent; color:#00FF7F; font-size:1.0em; text-align:left; }\n"
-        + "</style>\n";
+    html = `
+        <style>
+            .timer-remember-green-glow {
+                filter: drop-shadow(0px 0px 2px #4CAF50) drop-shadow(0px 0px 2px #4CAF50) drop-shadow(0px 0px 4px #4CAF50)
+            }
+            .timer-remember-red-glow {
+                filter: drop-shadow(0px 0px 2px #F44336) drop-shadow(0px 0px 2px #F44336) drop-shadow(0px 0px 4px #F44336)
+            }
+            .timer-remember-green-blink {
+                animation: timer-remember-green-blink-ani 1s linear infinite;
+            }
+            .timer-remember-red-blink {
+                animation: timer-remember-red-blink-ani 1s linear infinite;
+            }
+            @keyframes timer-remember-green-blink-ani {
+                0%,50% {filter: drop-shadow(0px 0px 4px #4CAF50) drop-shadow(0px 0px 4px #4CAF50) drop-shadow(0px 0px 4px #4CAF50); }
+                51% {filter: none;}
+            }
+            @keyframes timer-remember-red-blink-ani {
+                0%,50% {filter: drop-shadow(0px 0px 4px #F44336) drop-shadow(0px 0px 4px #F44336) drop-shadow(0px 0px 4px #F44336); }
+                51% {filter: none;}
+            }
+            .timer-button-white { border:none; background-color:transparent; color:white;   font-size:1.0em; text-align:left; }
+            .timer-button-red   { border:none; background-color:transparent; color:red;     font-size:1.0em; text-align:left; }
+            .timer-button-green { border:none; background-color:transparent; color:#00FF7F; font-size:1.0em; text-align:left; }
+        </style>`;
 
     // Prüfen ob aktive Background-Timer existieren, damit "Bed" in Überschrift entsprechend dargestellt werden kann
     for (var i=0; i<tabelle.length; i++){
@@ -1895,59 +1884,60 @@ function jsonToHtml(tabelle, withDevice) {
 
     // Funktionen für Klick und Doppel-Klick werden direkt im html Code der Buttons hinterlegt
     // html-Element der Tabelle ist nach Reload der Seite nicht sofort erreichbar, daher wird es nochmals in Funktionen integriert
-    html += '<script>\n'
-          + '\n'
-          + 'setTimeout( ()=> {\n'
-          + '   var targetEditorID = $("#tableMain-' + path + '").closest(".vis-view").children(".dialogIdentifier")[0].id;\n'
-          + '   var objID = "javascript.' + instance + '.Timer.' + path + '.PopUpWidgetID";\n'
-          + '   servConn.setState(objID, targetEditorID);\n'
-          + '}, 1000 )\n'
-          + 'function setOnClick' + path + '(val) {\n'
-          + '   var objID = "javascript.' + instance + '.Timer.' + path + '.clickTarget";\n'
-          + '   servConn.setState(objID, val);\n'
-          + '}\n'
-          + '\n'
-          + 'function setOnDblClick' + path + '(val) {\n'
-          + '   var objID = "javascript.' + instance + '.Timer.' + path + '.dblClickTarget";\n'
-          + '   servConn.setState(objID, val);\n'
-          + '}\n'
-          + 'function switchOnClick' + path + '(val, recursiveCall=false){\n'
-          + '   var keys = val.split("~")\n'
-          + '   var caller = keys.pop();\n'
-          + '   var elem = document.getElementById(val);\n'
-          + '   if(elem){\n'
-          + '      elem.className = ( elem.className == "timer-button-green" ? "timer-button-red" : "timer-button-green");\n'
-          + '      if (caller == "symb") {\n'
-          + '         var symbEnab = "' + symbEnab + '";\n'
-          + '         var symbDisab = "' + symbDisab + '";\n'
-          + '         elem.innerHTML = ( elem.innerHTML == symbEnab ? symbDisab : symbEnab);\n'
-          + '      }\n'
-          + '   }\n'
-          + '   if (!recursiveCall) {\n'
-          + '      switchOnClick' + path + '(keys.join("~") + (caller == "symb" ? "~digit" : "~symb"), true);\n'
-          + '   } else {\n'
-          + '      setOnClick' + path + '(val)\n'
-          + '   }\n'
-          + '}\n'
-          + 'function switchOnDblClick' + path + '(val, recursiveCall=false){\n'
-          + '   var keys = val.split("~")\n'
-          + '   var caller = keys.pop();\n'
-          + '   var elem = document.getElementById(val);\n'
-          + '   if(elem){\n'
-          + '      elem.className = ( elem.className == "timer-button-green" ? "timer-button-red" : "timer-button-green");\n'
-          + '      if (caller == "symb") {\n'
-          + '         var symbEnab = "' + symbEnab + '";\n'
-          + '         var symbDisab = "' + symbDisab + '";\n'
-          + '         elem.innerHTML = ( elem.innerHTML == symbEnab ? symbDisab : symbEnab);\n'
-          + '      }\n'
-          + '   }\n'
-          + '   if (!recursiveCall) {\n'
-          + '      switchOnDblClick' + path + '(keys.join("~") + (caller == "symb" ? "~digit" : "~symb"), true);\n'
-          + '   } else {\n'
-          + '      setOnDblClick' + path + '(val)\n'
-          + '   }\n'
-          + '}\n'
-          + '</script>';
+    html += `
+        <script>
+          setTimeout( ()=> {
+             var targetEditorID = $("#tableMain-${path}").closest(".vis-view").children(".dialogIdentifier")[0].id;
+             var objID = "javascript.${instance}.Timer.${path}.PopUpWidgetID";
+             servConn.setState(objID, targetEditorID);
+          }, 1000 )
+          function setOnClick${path}(val) {
+             var objID = "javascript.${instance}.Timer.${path}.clickTarget";
+             servConn.setState(objID, val);
+          }
+          
+          function setOnDblClick${path}(val) {
+             var objID = "javascript.${instance}.Timer.${path}.dblClickTarget";
+             servConn.setState(objID, val);
+          }
+          function switchOnClick${path}(val, recursiveCall=false){
+             var keys = val.split("~")
+             var caller = keys.pop();
+             var elem = document.getElementById(val);
+             if(elem){
+                elem.className = ( elem.className == "timer-button-green" ? "timer-button-red" : "timer-button-green");
+                if (caller == "symb") {
+                   var symbEnab = "${symbEnab}";
+                   var symbDisab = "${symbDisab}";
+                   elem.innerHTML = ( elem.innerHTML == symbEnab ? symbDisab : symbEnab);
+                }
+             }
+             if (!recursiveCall) {
+                switchOnClick${path}(keys.join("~") + (caller == "symb" ? "~digit" : "~symb"), true);
+             } else {
+                setOnClick${path}(val)
+             }
+          }
+          function switchOnDblClick${path}(val, recursiveCall=false){
+             var keys = val.split("~")
+             var caller = keys.pop();
+             var elem = document.getElementById(val);
+             if(elem){
+                elem.className = ( elem.className == "timer-button-green" ? "timer-button-red" : "timer-button-green");
+                if (caller == "symb") {
+                   var symbEnab = "${symbEnab}";
+                   var symbDisab = "${symbDisab}";
+                   elem.innerHTML = ( elem.innerHTML == symbEnab ? symbDisab : symbEnab);
+                }
+             }
+             if (!recursiveCall) {
+                switchOnDblClick${path}(keys.join("~") + (caller == "symb" ? "~digit" : "~symb"), true);
+             } else {
+                setOnDblClick${path}(val)
+             }
+          }
+        </script>'
+        `;
 
 	return html;
 }

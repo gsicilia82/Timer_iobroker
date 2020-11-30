@@ -151,6 +151,11 @@ Der Sollwert aus der VIS wird immer in `sollWertMapping` gesucht. Wird ein Treff
 
 ## Changelog
 
+**Changelog v1.2.1 30.11.2020 (Skript)**
+
+* Bugfix: Updates der IDs von Bedingungen funktioniert nun ohne Fehlermeldung
+* Lange String Passagen durch Backtick Strings ersetzt (Code besser zu lesen)
+
 **Changelog v1.2.0 22.11.2020 (Skript + VIS[optional] )**
 
 * Offsets können nun auch größer 59 Minuten gewählt werden
