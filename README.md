@@ -154,6 +154,7 @@ Der Sollwert aus der VIS wird immer in `sollWertMapping` gesucht. Wird ein Treff
 **Changelog v1.2.1 30.11.2020 (Skript)**
 
 * Bugfix: Updates der IDs von Bedingungen funktioniert nun ohne Fehlermeldung
+  *  Wenn gleichnamige Ersetzungen in der Aufzählung für Bedingungen oder für die Zielgeräte stattfinden, dann werden in allen Skript- und JSON-Elementen die neuen State-IDs übernommen
 * Lange String Passagen durch Backtick Strings ersetzt (Code besser zu lesen)
 
 **Changelog v1.2.0 22.11.2020 (Skript + VIS[optional] )**
