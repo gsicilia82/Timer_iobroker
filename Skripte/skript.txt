@@ -43,9 +43,37 @@ var showSymbol = true;
 // Spalte für Gruppennummer anzeigen?
 var showGroupNr = true;
 
-// Symbole für Timer-Status in Tabelle, kopiert aus: https://emojipedia.org/
-var symbDisab = "❌";
-var symbEnab = "✅";
+// Haupttabelle als Tabelle oder als Liste (nur für MDCSS >=2.0)
+// true = Tabelle, false = Liste
+var mainTableAsTable = true;
+
+// Modus über den der Name für ein Device ermittelt wird
+// 0 = Standard, device_name wird aus dem <id.common.name> geholt
+// 1 = device_name wird aus einem separaten state 'Name' geholt, der auf gleicher Ebene liegt 
+//     wie der state des Gerätes (aus dem Enum), also 
+//     adaptername.0.abc.rolladen.level   <== dieser State ist in der enum
+//     adaptername.0.abc.rolladen.Name    <== von hier wird der Name des Gerätes geholt 
+//                                ^ das große N beachten
+//     TIPP: falls das anders aufgebaut ist, dann kann mit der alias Funktion von ioBroker 
+//           diese Struktur aufgebaut werden         
+var getDeviceNameMode = 1;
+
+// Modus über den der Name für eine Bedingung/Condition ermittelt wird
+// 0 = Standard, condition_name wird aus dem <id.common.name> geholt
+// 1 = condition_name wird aus einem separaten state 'Name' geholt, der auf gleicher Ebene liegt 
+// weitere Beschreibung siehe bei getDeviceNameMode
+var getConditionNameMode = 1;
+
+// Symbole für Timer-Status in Tabelle, kopiert aus: https://emojipedia.org/ bzw. https://material.io/resources/icons/?icon=highlight_off&style=outline
+var symbDisab;
+var symbEnab;
+if (mainTableAsTable) {
+	symbDisab = "❌";
+	symbEnab = "✅";
+} else {
+	symbDisab = "highlight_off";
+	symbEnab = "check_circle_outline";
+}
 
 // Schriftgröße innerhalb Tabelle (Einheit "em")
 var fontSize = 1.0;
@@ -279,6 +307,7 @@ if (typeof condStyle === 'undefined') var condStyle = `[class*="timer-select-css
                                                         -moz-appearance: none;-webkit-appearance: none;appearance: none;background-color: rgba(0,0,0,0.1);
                                                         background-repeat: no-repeat, repeat;background-position: right .7em top 50%, 0 0;background-size: .65em auto, 100%;}`;
 if (typeof withHeader === 'undefined') var withHeader = true;
+if (typeof mainTableAsTable === 'undefined') var mainTableAsTable = true;
 
 
 sollDropDown = sollDropDown + ";Reset";
@@ -296,7 +325,7 @@ function dialogCtrl(cmd){
         // Für MaterialDesignWidget
         setState("javascript." + instance + ".Timer." + path + ".MaterialDialogWidgetOpen", true);
     }
-    else if (cmd == "close"){
+    else if (cmd == "close"){ 
         setState("vis.0.control.data"/*Data for control vis*/, DlgWidget );
         setState("vis.0.control.command"/*Command for vis*/, 'dialogClose');
         // Für MaterialDesignWidget
@@ -328,9 +357,16 @@ function setMinutesDropDown() {
 
 
 // Zeigt alle kommenden Timer in Liste (optimiert für DropDown-Liste)
-function nextTimer(){
-    var TimerJSON = JSON.parse(getState("javascript." + instance + ".Timer." + path + ".TimerJSON").val);
-    var timeStamp, checkTime, firstKey, splitKey, newKey;
+// wird myTimerJSON nicht übergeben, dann wird Wert aus State geholt
+// sonst wird der übergebene Wert genutzt
+function nextTimer(myTimerJSON){
+    var TimerJSON;
+	if (typeof myTimerJSON === 'undefined') {
+		TimerJSON = JSON.parse(getState("javascript." + instance + ".Timer." + path + ".TimerJSON").val);
+    } else {
+		TimerJSON = myTimerJSON;
+	}
+	var timeStamp, checkTime, firstKey, splitKey, newKey;
     var allTimer = {};
     Object.keys(TimerJSON).forEach(function(key) {
         for(var i = 1; i <= length(TimerJSON[key]); i++) {
@@ -405,7 +441,8 @@ function createConditionsJSON(){
     var dropDownListe = "";
     // ConditionJSON wird bei jedem Skript-Start neu erstellt da keine relevanten Alt-Daten vorhanden sind
     for(var i = 0; i < condition_members.length; i++) {
-        var condName = getObject(condition_members[i]).common.name;
+        var condName = getCondName(condition_members[i]); //getObject(condition_members[i]).common.name;
+		if (debugLog) console.log("createConditionsJSON condName=" + condName);
         ConditionJSON[condName] = condition_members[i];
     }
     // DropDown-Liste: Für alphabetische Sortierung nicht in for-Schleife oben integrierbar
@@ -785,7 +822,8 @@ function makeCondHtml(toBottom=false){
         let state = getState("javascript." + instance + ".Timer.Editor.Cond" + i + "State").val;
         let comp  = getState("javascript." + instance + ".Timer.Editor.Cond" + i + "Comp").val;
         let value = getState("javascript." + instance + ".Timer.Editor.Cond" + i + "Value").val;
-
+		value = checkCondValue(value);
+		
         ( state != "" && getObject(ConditionJSON[state]).common.type == "boolean" ? isBool = true : isBool = false );
 
         // Class für farbige Darstellung wählen
@@ -857,7 +895,7 @@ function openEditor(device, nr){
         setState("javascript." + instance + ".Timer.Editor.Condition" + i, TimerJSON[device][nr].Conditions[i].ConditionStr, true);
         setState("javascript." + instance + ".Timer.Editor.Cond" + i + "State", TimerJSON[device][nr].Conditions[i].CondState, true);
         setState("javascript." + instance + ".Timer.Editor.Cond" + i + "Comp", TimerJSON[device][nr].Conditions[i].CondComp, true);
-        setState("javascript." + instance + ".Timer.Editor.Cond" + i + "Value", TimerJSON[device][nr].Conditions[i].CondValue, true);
+		setState("javascript." + instance + ".Timer.Editor.Cond" + i + "Value", TimerJSON[device][nr].Conditions[i].CondValue, true);
         if (i <= TimerJSON[device][nr].ConditionsNr){
             setState("javascript." + instance + ".Timer.Editor.Cond" + i + "Result", eval(TimerJSON[device][nr].Conditions[i].ConditionStr));
         } else {
@@ -874,14 +912,16 @@ function openEditor(device, nr){
 
 // Wenn Status "Aktiv" über Tabellen-Klick geändert wird
 function toggleActivation(device, nr) {
+    if (debugLog) console.log("toggleActivation: device=" + device + " nr=" + nr);
     
     var TimerJSON = JSON.parse(getState("javascript." + instance + ".Timer." + path + ".TimerJSON").val); // einlesen der Einträge aus State
-
-    TimerJSON[device][nr].Aktiv = !TimerJSON[device][nr].Aktiv;
+	
+	TimerJSON[device][nr].Aktiv = !TimerJSON[device][nr].Aktiv;
     // Schedule setzen bzw. löschen
     TimerJSON[device][nr].ConditionsTrue = condEval(TimerJSON[device][nr]);
     autoScheduler(TimerJSON, device, nr);
     setState("javascript." + instance + ".Timer." + path + ".TimerJSON", JSON.stringify(TimerJSON), true); // rückschreiben in State
+	nextTimer(TimerJSON);
 }
 
 // ENDE DER HILFS-FUNKTIONEN
@@ -987,6 +1027,10 @@ function activateTrigger(){
         tableMain(0);
     });
 
+    // switch compactMode in VIS, triggert ausschließlich HTML-Darstellung
+    on({id: "javascript." + instance + ".Timer.Editor.timerlistCompactMode", change: "ne", ack: false}, function (obj) {
+        tableMain(0);
+    });
 
     // Trigger zur Erstellung der Tabelle in VIS
     on({id: "javascript." + instance + ".Timer." + path + ".TimerJSON", change: "ne", ack: false}, function (obj) {
@@ -1033,6 +1077,15 @@ function activateTrigger(){
 
 } // Ende activateTrigger()
 
+function checkCondValue(val) {
+    if (val.substr(0,1) === '"') {
+		val = "'" + val.substr(1, val.length);
+	}
+	if (val.substr(-1, 1) === '"') {  //substr with negative start value gives chars from the end
+		val = val.substr(0, val.length - 1) + "'";
+	}
+	return val;
+}
 
 
 var EditSubsArr = [];
@@ -1282,7 +1335,8 @@ function activateEditorTrigger(){
                         TimerJSON[device][nr].Conditions[i].ConditionStr = getState("javascript." + instance + ".Timer.Editor.Condition" + i).val; 
                         TimerJSON[device][nr].Conditions[i].CondState = getState("javascript." + instance + ".Timer.Editor.Cond" + i + "State").val; 
                         TimerJSON[device][nr].Conditions[i].CondComp = getState("javascript." + instance + ".Timer.Editor.Cond" + i + "Comp").val; 
-                        TimerJSON[device][nr].Conditions[i].CondValue = getState("javascript." + instance + ".Timer.Editor.Cond" + i + "Value").val; 
+						TimerJSON[device][nr].Conditions[i].CondValue = getState("javascript." + instance + ".Timer.Editor.Cond" + i + "Value").val; 
+						TimerJSON[device][nr].Conditions[i].CondValue = checkCondValue(TimerJSON[device][nr].Conditions[i].CondValue);
                     } else {
                         TimerJSON[device][nr].Conditions[i].ConditionStr = ""; 
                         TimerJSON[device][nr].Conditions[i].CondState = ""; 
@@ -1320,7 +1374,8 @@ function activateEditorTrigger(){
                                     TimerJSON[device][nr].Conditions[i].ConditionStr = getState("javascript." + instance + ".Timer.Editor.Condition" + i).val; 
                                     TimerJSON[device][nr].Conditions[i].CondState = getState("javascript." + instance + ".Timer.Editor.Cond" + i + "State").val; 
                                     TimerJSON[device][nr].Conditions[i].CondComp = getState("javascript." + instance + ".Timer.Editor.Cond" + i + "Comp").val; 
-                                    TimerJSON[device][nr].Conditions[i].CondValue = getState("javascript." + instance + ".Timer.Editor.Cond" + i + "Value").val; 
+									TimerJSON[device][nr].Conditions[i].CondValue = getState("javascript." + instance + ".Timer.Editor.Cond" + i + "Value").val; 
+									TimerJSON[device][nr].Conditions[i].CondValue = checkCondValue(TimerJSON[device][nr].Conditions[i].CondValue);
                                 } else {
                                     TimerJSON[device][nr].Conditions[i].ConditionStr = ""; 
                                     TimerJSON[device][nr].Conditions[i].CondState = ""; 
@@ -1411,6 +1466,20 @@ createState("Timer." + path + ".MaterialDialogWidgetOpen", false, {
 });
 createState("Timer.Editor.ErrorMsg", "", {
     type: "string", 
+    role: "state"
+});
+
+createState("Timer.Editor.timerlistCompactMode", false, {
+    name: 'show timer list in normal or compact mode',
+    desc: 'false: normal mode, true: compact mode',
+	type: "boolean", 
+    role: "button"
+});
+
+createState("Timer.Editor.timerlistCompactModeButtonVisible", false, {
+    name: 'show button to switch normal and compact mode',
+    desc: 'true: button visile, false button not visible',
+	type: "boolean", 
     role: "state"
 });
 
@@ -1554,6 +1623,59 @@ var DefaultInhalte = {
         },
 };
 
+// device_name wird aus dem <id.common.name> geholt
+// falls er dort nicht steht, dann kann hier eine eigene Funktion zum ermitteln erstellt werden
+function getDevName(id) {
+	// selector entsprechend setzen
+	// und ggfs. Funktion erweitern
+	let selector = getDeviceNameMode;  // 0 ist Standard
+	
+	switch (selector) {
+		case 0: {
+			// standard
+			return getObject(id).common.name;
+			break;
+		}
+		case 1: {
+			// Beispiel für anderen Ort
+			let ida = id.split('.');
+			let tid = '';
+			for (let i = 0; i < ida.length - 1; i++) {
+				tid += ida[i] + '.';
+			}
+			tid += 'Name';
+			return getState(tid).val;
+		} // end case
+	} // end switch
+}
+
+// condition_name wird aus dem <id.common.name> geholt
+// falls er dort nicht steht, dann kann hier eine eigene Funktion zum ermitteln erstellt werden
+//getCondName id=alias.0.smartgarden.pumpe.activity_value
+//getCondName tid=alias.0.smartgarden.pumpe.Name
+function getCondName(id) {
+	// selector entsprechend setzen
+	// und ggfs. Funktion erweitern
+	let selector = getConditionNameMode;  // 0 ist Standard
+	switch (selector) {
+		case 0: {
+			// standard
+			return getObject(id).common.name;
+			break;
+		}
+		case 1: {
+			// Beispiel für anderen Ort
+			let ida = id.split('.');
+			let tid = '';
+			for (let i = 0; i < ida.length - 1; i++) {
+				tid += ida[i] + '.';
+			}
+			tid += 'Name';
+			return getState(tid).val;
+		} // end case
+	} // end switch
+}
+
 function main () {
     var dropDownListe = "";
     var devName;
@@ -1565,11 +1687,12 @@ function main () {
     // ConditionJSON wird mit jedem Start neu eingelesen
     setTimeout(updateCond,500);
     setAstro(false); // false = ohne direkte Neuberechnung der Timer
+	setState("javascript." + instance + ".Timer.Editor.timerlistCompactModeButtonVisible", !mainTableAsTable);
     if (getState("javascript." + instance + ".Timer." + path + ".TimerJSON").val === null) {
         // Erste Initialisierung falls Objekte noch nicht existieren
         console.warn("States werden neu erstellt! Script bitte erneut starten!");
         for(var i = 0; i < device_members.length; i++) {
-            devName = getObject(device_members[i]).common.name;
+            devName = getDevName(device_members[i]); 
             dropDownListe += devName + ";";
             TimerJSON[devName] = jsonCopy(DefaultInhalte);
             TimerJSON[devName][1].ObjID = TimerJSON[devName][2].ObjID = device_members[i];
@@ -1599,11 +1722,12 @@ function main () {
         // Check ob neue Device hinzugekommen sind oder IDs der Bedingungen verändert wurden
         var ConditionJSON = {};
         for(var i = 0; i < condition_members.length; i++) {
-            var condName = getObject(condition_members[i]).common.name;
+            var condName = getCondName(condition_members[i]); //getObject(condition_members[i]).common.name;
+			if (debugLog) console.log("main condName=" + condName);
             ConditionJSON[condName] = condition_members[i];
         }
         for(var i = 0; i < device_members.length; i++) {
-            devName = getObject(device_members[i]).common.name;
+            devName = devName = getDevName(device_members[i]); 
             if(!TimerJSON.hasOwnProperty(devName)){
                 console.log("Device # " + devName + " # fehlt und wird neu hinzugefügt!");
                 // Zunächst DropDownListe für Devices erweitern
@@ -1627,7 +1751,7 @@ function main () {
                     // Wenn Timer Bedingungen enthält, dann Auswerte-String für Bedingung neu erstellen
                     var condCount = TimerJSON[devName][nr]["ConditionsNr"];
                     if (condCount > 0) {
-                        //let condName = getObject(condition_members[i]).common.name;
+                        //let condName = getCondName(condition_members[i]); //getObject(condition_members[i]).common.name;
                         //ConditionJSON[condName] = condition_members[i];
                         for(let j = 1; j <= condCount; j++) {
                             var CondState = TimerJSON[devName][nr]["Conditions"][j]["CondState"];
@@ -1762,11 +1886,14 @@ function buildTableArray() {
             }
             tabelle.push({
                 "Geraet"    : key,
+				"GeraetButtonCode" : getButtonCode(key + "~" + j + "~dev", key, "white"),
                 "Nr"        : j, 
                 "Aktiv"     : tempJsonNr.Aktiv,
+				"IconButtonCode" : getSwitchButtonCode(key + "~" + j + "~symb", ( tempJsonNr.Aktiv ? symbEnab : symbDisab ), ( tempJsonNr.Aktiv ? "green"  : "red" ) ),
                 "Gruppe"    : tempJsonNr.Gruppe,
                 "CondNr"    : tempJsonNr.ConditionsNr,
                 "CondTrue"  : tempJsonNr.ConditionsTrue,
+				"CondNrColor" : getCondValueWithColor(tempJsonNr.ConditionsNr, tempJsonNr.ConditionsTrue, tmpClass),
                 "Class"     : tmpClass,
                 "Zeit"      : tempJsonNr.Zeit,
                 "Tage"      : tempJsonNr.TageVIS,
@@ -1774,6 +1901,7 @@ function buildTableArray() {
                 "Astro"     : tmpAstro,
                 "offset"    : tmpOffset,
                 "rand"      : tmpRand,
+				"showcompact" : (getState("javascript." + instance + ".Timer.Editor.timerlistCompactMode").val ? "none" : "")
             });
         }
     }
@@ -1789,8 +1917,13 @@ function getButtonCode(buttonVal, buttonText, color){
 
 // Button Code für Umschaltung der Timer (on/off)
 function getSwitchButtonCode(buttonVal, buttonText, color){
-    return `<button class="timer-button-${color}" value="${buttonVal}" id="${buttonVal}" onclick="${ !oneClick ? 'setOnClick' : 'switchOnClick'}${path}(this.value)"
+	if (mainTableAsTable) {
+		return `<button class="timer-button-${color}" value="${buttonVal}" id="${buttonVal}" onclick="${ !oneClick ? 'setOnClick' : 'switchOnClick'}${path}(this.value)"
             ${ !oneClick ? 'ondblclick="switchOnDblClick' + path + '(this.value)"' : '' }>${buttonText}</button>`;
+    } else {
+		return `<button class="timer-button-${color} material-icons mdui-${color}" style="font-size:1.5em;"  value="${buttonVal}" id="${buttonVal}" onclick="${ !oneClick ? 'setOnClick' : 'switchOnClick'}${path}(this.value)"
+            ${ !oneClick ? 'ondblclick="switchOnDblClick' + path + '(this.value)"' : '' }>${buttonText}</button>`;
+	}
 }
 
 // Button überträgt bei Klick den Wert:
@@ -1799,16 +1932,36 @@ function getFakeButtonCode(buttonText){
     return `<button style="border:none; background-color:transparent; color:white; font-size:1.0em; text-align:left" >${buttonText}</button>`;
 }
 
+function getCondValueWithColor(value, active, rememberClass) {
+	let t='';
+	
+	t += '<span';
+	
+	if (rememberClass !== "") {
+		t += ' ' + rememberClass;
+	} else {
+		if (value > 0) {
+			if (active) {
+				t += ' class="mdui-green"'; // you need blank at beginning of string!
+			} else {
+				t += ' class="mdui-red"';// you need blank at beginning of string!
+			}
+		}
+	}
+	t += '> ' + value + '</span>';
+	return t;
+}
 
 function jsonToHtml(tabelle, withDevice) {
   
 	var html = "";
-    var astro = "";
+    let htmlList = "";
+	var astro = "";
     var tmpTage = "";
     var backgroundTimerExists = false;
 
     // Klasse für das Blinken der Bedingungen wenn Timer im Hintergrund
-    html = `
+    let htmlremember = `
         <style>
             .timer-remember-green-glow {
                 filter: drop-shadow(0px 0px 2px #4CAF50) drop-shadow(0px 0px 2px #4CAF50) drop-shadow(0px 0px 4px #4CAF50)
@@ -1835,6 +1988,8 @@ function jsonToHtml(tabelle, withDevice) {
             .timer-button-green { border:none; background-color:transparent; color:#00FF7F; font-size:1.0em; text-align:left; }
         </style>`;
 
+	html = htmlremember;
+	
     // Prüfen ob aktive Background-Timer existieren, damit "Bed" in Überschrift entsprechend dargestellt werden kann
     for (var i=0; i<tabelle.length; i++){
         if (tabelle[i].Class == "class=timer-remember-red-blink"){
@@ -1842,49 +1997,94 @@ function jsonToHtml(tabelle, withDevice) {
         }
     }
 
-    // Überschriften der Tabelle
-    html += "<table id=tableMain-" + path + " style='font-size:" + fontSize + "em;width:100%;'>\n";
+    const tmpList = {
+		row : 
+			`<div id=tableMain-${path} class="mdui-listitem" style="width:100%; display:flex;">
+				<div style="flex:0 0 3em;">
+					<div class="mdui-button mdui-center">{IconButtonCode}</div>
+				</div>  
+				<div style="flex:1 1 auto; display:flex; flex-wrap:wrap;">
+					<div class="mdui-button" style="flex:0 0 100%;">{GeraetButtonCode}</div>
+					<div class="mdui-label" style="font-size:0.8em; flex:1 1 15em; display:flex; flex-wrap:wrap; align-content:flex-start; padding-right:0.5em;">
+						<div style="flex:1 0 10em; ">Zeit: <span class="mdui-value">{Zeit}</span></div>
+						<div style="flex:1 0 10em; ">Tage: <span class="mdui-value">{Tage}</span></div>
+					</div> 
+					<div class="mdui-label" style="font-size:0.8em; flex:1 1 15em; display:flex; flex-wrap:wrap; align-content:flex-start; padding-right:0.5em;">
+						<div style="flex:1 0 10em; ">Sollwert: <span class="mdui-value">{Sollwert}</span></div>
+						<div style="flex:1 0 10em;">Bedingungen: <span class="mdui-value">{CondNrColor}</span></div>
+					</div> 
+					<div class="mdui-label" style="font-size:0.8em; flex:1 1 15em; display:flex; display:{showcompact}; flex-wrap:wrap; align-content:flex-start; padding-right:0.5em;">
+						<div style="flex:1 0 10em; ">Astro: <span class="mdui-value">{Astro}</span></div>
+						<div style="flex:1 0 10em; ">Offset: <span class="mdui-value">{offset}</span></div>
+						<div style="flex:1 0 10em; ">Zufall: <span class="mdui-value">{rand}</span></div>
+					</div> 
+					<div class="mdui-label" style="font-size:0.8em; flex:1 1 15em; display:flex; display:{showcompact};flex-wrap:wrap; align-content:flex-start; padding-right:0.5em;">
+						<div style="flex:1 0 10em; ">Nr: <span class="mdui-value">{Nr}</span> </div>
+						<div style="flex:1 0 10em; ">Gruppe: <span class="mdui-value">{Gruppe}</span></div>
+					</div> 
+				</div>
+			</div>`
+	}
 
-    if (withHeader) html += "<thead>\n<tr>\n"
-         + ( withDevice  ?  "<th style='text-align:left;'>" + getFakeButtonCode("Device") + "</th>\n"  : "" ) /* Wenn splitHTML true ist, dann keine Spalte "Device" */
-         + ( showTimerNr ?  "<th style='text-align:left;'>" + getFakeButtonCode("Nr") + "</th>\n"      : "" )
-         + ( showSymbol  ?  "<th style='text-align:left;'>" + getFakeButtonCode("Aktiv") + "</th>\n"   : "" )
-         /* Nachfolgend die Darstellung von "Bed" in zwei Zeilen zwecks lesbarkeit */
-         + ( !backgroundTimerExists  ?  "<th style='text-align:left;'>" + getFakeButtonCode("Bed") + "</th>\n"   : "" )
-         + ( backgroundTimerExists  ?  "<th class=timer-remember-red-blink style='text-align:left;'>" + getButtonCode("all~0~cond", "Bed", "red") + "</th>\n"   : "" )
-         + ( showGroupNr ?  "<th style='text-align:left;'>Grp</th>\n"                                : "" )
-         + "<th style='text-align:left;'>" + getFakeButtonCode("Zeit") + "</th>\n"
-         + "<th style='text-align:left;'>Wochentag</th>\n"
-         + "<th style='text-align:left;'>Soll</th>\n"
-         + "<th style='text-align:left;'>Astro</th>\n"
-         + "<th style='text-align:left;'>Offset</th>\n"
-         + "<th style='text-align:left;'>Zufall</th>\n"
-         + "</tr></thead>";
-
-    html += "<tbody>\n\n";
-
+	
+	if (mainTableAsTable) {	
+		// Überschriften der Tabelle
+		html += "<table id=tableMain-" + path + " style='font-size:" + fontSize + "em;width:100%;'>\n";
+	
+		if (withHeader) html += "<thead>\n<tr>\n"
+			+ ( withDevice  ?  "<th style='text-align:left;'>" + getFakeButtonCode("Device") + "</th>\n"  : "" ) /* Wenn splitHTML true ist, dann keine Spalte "Device" */
+			+ ( showTimerNr ?  "<th style='text-align:left;'>" + getFakeButtonCode("Nr") + "</th>\n"      : "" )
+			+ ( showSymbol  ?  "<th style='text-align:left;'>" + getFakeButtonCode("Aktiv") + "</th>\n"   : "" )
+			/* Nachfolgend die Darstellung von "Bed" in zwei Zeilen zwecks lesbarkeit */
+			+ ( !backgroundTimerExists  ?  "<th style='text-align:left;'>" + getFakeButtonCode("Bed") + "</th>\n"   : "" )
+			+ ( backgroundTimerExists  ?  "<th class=timer-remember-red-blink style='text-align:left;'>" + getButtonCode("all~0~cond", "Bed", "red") + "</th>\n"   : "" )
+			+ ( showGroupNr ?  "<th style='text-align:left;'>Grp</th>\n"                                : "" )
+			+ "<th style='text-align:left;'>" + getFakeButtonCode("Zeit") + "</th>\n"
+			+ "<th style='text-align:left;'>Wochentag</th>\n"
+			+ "<th style='text-align:left;'>Soll</th>\n"
+			+ "<th style='text-align:left;'>Astro</th>\n"
+			+ "<th style='text-align:left;'>Offset</th>\n"
+			+ "<th style='text-align:left;'>Zufall</th>\n"
+			+ "</tr></thead>";
+	
+		html += "<tbody>\n\n";
+	} else {
+		// und für die Listendarstellung
+		htmlList  = htmlremember;
+	}
+	
     // Erstellen der einzelnen Tabelleneinträge
 	for (var i=0; i<tabelle.length; i++){
+		if (mainTableAsTable) {
+			html += "<tr>\n"
+				+ ( withDevice  ? '<td style="vertical-align:top;">' + getButtonCode(tabelle[i].Geraet + "~" + tabelle[i].Nr + "~dev", tabelle[i].Geraet, "white") + "</td>\n" : "" )
+				+ ( showTimerNr ? '<td style="vertical-align:top;">' + getSwitchButtonCode(tabelle[i].Geraet + "~" + tabelle[i].Nr + "~digit", tabelle[i].Nr, ( tabelle[i].Aktiv ? "green"  : "red" ) ) + "</td>\n" : "" )
+				+ ( showSymbol  ? '<td style="vertical-align:top;">' + getSwitchButtonCode(tabelle[i].Geraet + "~" + tabelle[i].Nr + "~symb", ( tabelle[i].Aktiv ? symbEnab : symbDisab ), ( tabelle[i].Aktiv ? "green"  : "red" ) ) + "</td>\n" : "" )
+				+ ( tabelle[i].CondNr > 0 ? '<td style="vertical-align:top;"' + tabelle[i].Class + ">" + getButtonCode(tabelle[i].Geraet + "~" + tabelle[i].Nr + "~cond", "*" + tabelle[i].CondNr, ( tabelle[i].CondTrue ? "green" : "red" ) ) + "</td>\n" : "<td> </td>\n" )
+				+ ( showGroupNr ? '<td style="vertical-align:top;">' + tabelle[i].Gruppe + "</td>" : "" )
+				+ '<td style="vertical-align:top;">' + getButtonCode(tabelle[i].Geraet + "~" + tabelle[i].Nr + "~time", tabelle[i].Zeit, "white") + "</td>\n"
+				+ '<td style="vertical-align:top;">' + tabelle[i].Tage + "</td>\n"
+				+ '<td style="vertical-align:top;">' + tabelle[i].Sollwert + "</td>\n"
+				+ '<td style="vertical-align:top;">' + tabelle[i].Astro + "</td>\n"
+				+ '<td style="vertical-align:top;">' + tabelle[i].offset + "</td>\n"
+				+ '<td style="vertical-align:top;">' + tabelle[i].rand + "</td>\n"
+				+ "</tr>\n\n";
+		} else {
+			// und jetzt Liste befüllen
+			let entry = tabelle[i];
+			let tr = tmpList.row;  
+			for (let [key, value] of Object.entries(entry)) {
+				tr = tr.replace(new RegExp('{'+key+'}','g'),value);
+			}
+			htmlList+=tr;
+		}
 
-    	html += "<tr>\n"
-              + ( withDevice  ? "<td>" + getButtonCode(tabelle[i].Geraet + "~" + tabelle[i].Nr + "~dev", tabelle[i].Geraet, "white") + "</td>\n" : "" )
-              + ( showTimerNr ? "<td>" + getSwitchButtonCode(tabelle[i].Geraet + "~" + tabelle[i].Nr + "~digit", tabelle[i].Nr, ( tabelle[i].Aktiv ? "green"  : "red" ) ) + "</td>\n" : "" )
-              + ( showSymbol  ? "<td>" + getSwitchButtonCode(tabelle[i].Geraet + "~" + tabelle[i].Nr + "~symb", ( tabelle[i].Aktiv ? symbEnab : symbDisab ), ( tabelle[i].Aktiv ? "green"  : "red" ) ) + "</td>\n" : "" )
-              + ( tabelle[i].CondNr > 0 ? "<td " + tabelle[i].Class + ">" + getButtonCode(tabelle[i].Geraet + "~" + tabelle[i].Nr + "~cond", "*" + tabelle[i].CondNr, ( tabelle[i].CondTrue ? "green" : "red" ) ) + "</td>\n" : "<td> </td>\n" )
-              + ( showGroupNr ? "<td>" + tabelle[i].Gruppe + "</td>" : "" )
-              + "<td>" + getButtonCode(tabelle[i].Geraet + "~" + tabelle[i].Nr + "~time", tabelle[i].Zeit, "white") + "</td>\n"
-              + "<td>" + tabelle[i].Tage + "</td>\n"
-              + "<td>" + tabelle[i].Sollwert + "</td>\n"
-              + "<td>" + tabelle[i].Astro + "</td>\n"
-              + "<td>" + tabelle[i].offset + "</td>\n"
-              + "<td>" + tabelle[i].rand + "</td>\n"
-              + "</tr>\n\n";
-    }
+	}
     html += "</tbody></table>\n\n";
 
     // Funktionen für Klick und Doppel-Klick werden direkt im html Code der Buttons hinterlegt
     // html-Element der Tabelle ist nach Reload der Seite nicht sofort erreichbar, daher wird es nochmals in Funktionen integriert
-    html += `
+    let htmlscript = `
         <script>
           setTimeout( ()=> {
              var targetEditorID = $("#tableMain-${path}").closest(".vis-view").children(".dialogIdentifier")[0].id;
@@ -1893,23 +2093,45 @@ function jsonToHtml(tabelle, withDevice) {
           }, 1000 )
           function setOnClick${path}(val) {
              var objID = "javascript.${instance}.Timer.${path}.clickTarget";
+             if (${debugLog}) console.log("setOnClick${path}: objID=" + objID + " val=" + val);
              servConn.setState(objID, val);
           }
           
           function setOnDblClick${path}(val) {
              var objID = "javascript.${instance}.Timer.${path}.dblClickTarget";
+             if (${debugLog}) console.log("setOnDblClick${path}: objID=" + objID);
              servConn.setState(objID, val);
           }
           function switchOnClick${path}(val, recursiveCall=false){
+			 if (${debugLog}) console.log("switchOnClick${path}: val=" + val + " recursiveCall=" + recursiveCall);
              var keys = val.split("~")
              var caller = keys.pop();
              var elem = document.getElementById(val);
+			 if (${debugLog}) console.log("switchOnClick${path}: elem=" + JSON.stringify(elem));
              if(elem){
-                elem.className = ( elem.className == "timer-button-green" ? "timer-button-red" : "timer-button-green");
+                //elem.className = ( elem.className == "timer-button-green" ? "timer-button-red" : "timer-button-green");
+				let temp = elem.className.search("timer-button-green");
+				if (temp !== -1) { //found "timer-button-green"
+					elem.className = elem.className.replace("timer-button-green", "timer-button-red");
+					elem.className = elem.className.replace("mdui-green", "mdui-red");
+				} else { // there must be "timer-button-red"
+					elem.className = elem.className.replace("timer-button-red", "timer-button-green");
+					elem.className = elem.className.replace("mdui-red", "mdui-green");
+				}
+				
+				if (${debugLog}) console.log("switchOnClick${path}: elem.className=" + elem.className);
                 if (caller == "symb") {
                    var symbEnab = "${symbEnab}";
                    var symbDisab = "${symbDisab}";
-                   elem.innerHTML = ( elem.innerHTML == symbEnab ? symbDisab : symbEnab);
+                   //elem.innerHTML = ( elem.innerHTML == symbEnab ? symbDisab : symbEnab);
+				   let temp = elem.innerHTML.search(symbEnab);
+				   if (temp !== -1) { //found symbEnab
+						if (${debugLog}) console.log("switchOnClick${path}: change from " + symbEnab + " to " + symbDisab);
+						elem.innerHTML = elem.innerHTML.replace(symbEnab, symbDisab);
+				   } else { // there must be symbDisab
+						if (${debugLog}) console.log("switchOnClick${path}: change from " + symbDisab + " to " + symbEnab);
+						elem.innerHTML = elem.innerHTML.replace(symbDisab, symbEnab);
+				   }
                 }
              }
              if (!recursiveCall) {
@@ -1922,12 +2144,30 @@ function jsonToHtml(tabelle, withDevice) {
              var keys = val.split("~")
              var caller = keys.pop();
              var elem = document.getElementById(val);
+             if (${debugLog}) console.log("switchOnDblClick${path}: elem=" + elem);
              if(elem){
-                elem.className = ( elem.className == "timer-button-green" ? "timer-button-red" : "timer-button-green");
+                //elem.className = ( elem.className == "timer-button-green" ? "timer-button-red" : "timer-button-green");
+				let temp = elem.className.search("timer-button-green");
+				if (temp !== -1) { //found "timer-button-green"
+					elem.className = elem.className.replace("timer-button-green", "timer-button-red");
+					elem.className = elem.className.replace("mdui-green", "mdui-red");
+				} else { // there must be "timer-button-red"
+					elem.className = elem.className.replace("timer-button-red", "timer-button-green");
+					elem.className = elem.className.replace("mdui-red", "mdui-green");
+				}
+				
+				if (${debugLog}) console.log("switchOnDblClick${path}: elem.className=" + elem.className);
                 if (caller == "symb") {
                    var symbEnab = "${symbEnab}";
                    var symbDisab = "${symbDisab}";
-                   elem.innerHTML = ( elem.innerHTML == symbEnab ? symbDisab : symbEnab);
+
+                   //elem.innerHTML = ( elem.innerHTML == symbEnab ? symbDisab : symbEnab);
+				   let temp = elem.innerHTML.search(symbEnab);
+				   if (temp !== -1) { //found symbEnab
+						elem.innerHTML = elem.innerHTML.replace(symbEnab, symbDisab);
+				   } else { // there must be symbDisab
+						elem.innerHTML = elem.innerHTML.replace(symbDisab, symbEnab);
+				   }
                 }
              }
              if (!recursiveCall) {
@@ -1939,12 +2179,18 @@ function jsonToHtml(tabelle, withDevice) {
         </script>'
         `;
 
-	return html;
+	if (mainTableAsTable) {
+		html += htmlscript;
+		return html;
+	} else {
+		htmlList += htmlscript;
+		return htmlList;
+	}
 }
 
 var tableTimeout;
 function tableMain(delay) {
-    
+
     if (tableTimeout) {clearTimeout(tableTimeout); tableTimeout = null;}
 
     tableTimeout = setTimeout(function(){
