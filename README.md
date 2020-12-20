@@ -2,7 +2,7 @@
 
 Variable Zeitsteuerung mit VIS Editor und schneller Einrichtung
 
-* [Hauptansicht Timer (MDCSS1)](#hauptansicht-timer)
+* [Hauptansicht Timer (MDCSS1)](#hauptansicht-timer-(mdcss1))
 * [Bedienung](#bedienung)
 * [PopUp Editor](#popup-editor)
 * [Konfiguration Skript](#konfiguration-skript)
