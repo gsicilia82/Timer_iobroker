@@ -10,7 +10,7 @@ Variable Zeitsteuerung mit VIS Editor und schneller Einrichtung
 * [Weitere Infos](#weitere-infos)
 * [Changelog](#changelog)
 
-## Hauptansicht Timer
+## Hauptansicht Timer (MDCSS1)
 
 ![MainView](./ReadMe_Images/MainView.png)
 
