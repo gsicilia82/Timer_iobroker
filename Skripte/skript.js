@@ -56,21 +56,19 @@ var mainTableAsTable = true;
 //                                ^ das große N beachten
 //     TIPP: falls das anders aufgebaut ist, dann kann mit der alias Funktion von ioBroker 
 //           diese Struktur aufgebaut werden         
-var getDeviceNameMode = 1;
+var getDeviceNameMode = 0;
 
 // Modus über den der Name für eine Bedingung/Condition ermittelt wird
 // 0 = Standard, condition_name wird aus dem <id.common.name> geholt
 // 1 = condition_name wird aus einem separaten state 'Name' geholt, der auf gleicher Ebene liegt 
 // weitere Beschreibung siehe bei getDeviceNameMode
-var getConditionNameMode = 1;
+var getConditionNameMode = 0;
 
 // Symbole für Timer-Status in Tabelle, kopiert aus: https://emojipedia.org/ bzw. https://material.io/resources/icons/?icon=highlight_off&style=outline
-var symbDisab;
-var symbEnab;
-if (mainTableAsTable) {
-	symbDisab = "❌";
-	symbEnab = "✅";
-} else {
+var symbDisab = "❌";
+var symbEnab  = "✅";
+
+if (!mainTableAsTable) {
 	symbDisab = "highlight_off";
 	symbEnab = "check_circle_outline";
 }
@@ -120,6 +118,9 @@ var withHeader = true;
  * * Weitere Infos: https://forum.iobroker.net/topic/23346/vorlage-variable-zeitsteuerung-mit-vis-editor
  * Autor: Giuseppe Sicilia (Forum: GiuseppeS)
  * 
+ * Changelog v1.3.0 20.12.2020 (Skript + VIS(optional)
+ * - 
+ * 
  * Changelog v1.2.1 30.11.2020 (Skript)
  * - Bugfix: Updates der IDs von Bedingungen funktioniert nun ohne Fehlermeldung
  * - Lange String Passagen durch Backtick Strings ersetzt (Code besser zu lesen)
@@ -133,156 +134,6 @@ var withHeader = true;
  * - Widget-ID des EDIT-Buttons muss oben im Skript nicht mehr angegeben werden.
  *   Widget-ID wird nun gefunden: Dafür muss im EDIT-Widget unter CSS-Klasse der Eintrag "dialogIdentifier" (ohne "") ergänzt werden.
  *   !!! Änderung muss bei Update von bestehender Version nicht durchgeführt werden. Abwärtskompatibilität ist gegeben !!!
- *   
- * Changelog v1.0.0 19.11.2020 (Skript)
- * - Auto-Scroll innerhalb VIS Haupttabelle nun ohne Flackern umgesetzt
- * - Aktualisierte States werden in Skript übernommen, wenn in Aufzählungen (Devices und/oder Conditions) gleichnamige Namen mit veränderten ioBroker States erkannt werden
- *  
- * Changelog 18.10.2020 (Skript)
- * - Scroll-Positionen von Main-Tabelle und Editor-Bedingungen werden gespeichert
- * - Header der Main-Tabelle können über optionale Variable "withHeader" deaktiviert werden
- * 
- * Changelog 11.10.2020 (Editor-View)
- * - Bugfix bei Buttons Mo - Do, Ursache weiterhin unklar aber nun fehlerfrei
- * 
- * Changelog 04.10.2020 (Skript)
- * - HTML-Style für Bedingungen in den Bereich der Variablen integriert (var condStyle = optional)
- * - Timing zur HTML-Erstellung der Editor-Bedingungen korrigiert
- * - Bugfix: gemerkte Timer im Hintergrund, werden in jedem Fall durch nachfolgende Timer gelöscht
- * 
- * Changelog 09.08.2020 (Skript)
- * - Verschiedene Bugs behoben
- * 
- * Changelog 08.08.2020 (Skript + Editor-View)
- * - Anzahl Bedingungen von 3 auf 9 erweitert (falls noch mehr benötigt ist es simpel/individuell erweiterbar)
- * - Bedingungen werden in Editor-View als HTML-Tabelle angezeigt
- * - Im Editor-View wird nun ENTWEDER Zeile "Zeiteingabe" ODER "Offset" angezeigt.
- * - Timer-JSON und EDITOR-States werden mit Skript-Update ergänzt
- * 
- * Changelog 18.07.2020 (Skript)
- * - Bugfixes: Falls Random-Minuten auch für gemerkte Timer genutzt wird (bgTimerWithRandom = true), wird eine doppelte AUsführung verhindert
- * - Der Fall "Random-Minuten für gemerkte Timer" wird nun vollumfänglich unterstützt; d.h. der Countdown wird unterbrochen im Falle von
- *   "Reset durch nachfolgenden Timer" oder falls das Ziel-Gerät anderweitig verändert wurde. 
- *
- * Changelog 16.07.2020 (Skript + Main-View + Editor-View)
- * - Selbes Editor-View (PopUp) für mehrer Timer nutzbar!
- * - Neue Variable definiert: bgTimerWithRandom (optional) => Random-Minuten auch für gemerkte Timer nutzen?
- * - Instanz wird im Skript dynamisch gesetzt. Skript in Javascript-Instanz ">0" lauffähig!
- * - Sollwert-DropDown wurde mit "Reset" erweitert. Im Hintergrund befindliche Timer (gemerkt) können durch diese
- *   Sollwert-Vorgabe im nachfolgenden Timer gelöscht werden. Gerät wird nicht aktiv mit Sollwert "Reset" gesteuert. 
- * 
- * Changelog 30.06.2020 (Skript)
- * - Codeoptimierung, Error-Handling wenn Buttons nicht gemäß Standard genutzt werden
- * - Bugfix: Alle gemerkten Timer werden nun ausgeführt, wenn Bedingungen nächträglich erfüllt werden.
- * 
- * Changelog 20.06.2020 (Skript)
- * - State "javascript.0.Timer.AtHomeSimul.TableJSON" gelöscht, wird nicht mehr benötigt.
- * - Bugfix: Bei Tabellen mit modifizierter Reihenfolge funktioniert nun auch die Filterung korrekt!
- * 
- * Changelog 17.06.2020 (Skript)
- * - Steuerung der Geräte mit Versatz möglich. Neue (optionale) Variable "sendWithOffset"
- * 
- * Changelog 30.05.2020 (Skript & VIS)
- * - Bugfix "ErrorMessage" im PopUp
- * - Neue Variable im Edit-Bereich: logSuffix
- *   Kann genutzt werden, um Log-Ausgabe noch flexibler anzupassen (Ist für manuelles Update nicht zwingend neu anzulegen)
- * 
- * Changelog 29.05.2020 v2
- * - DialogBox Button "Abbrechen" ersetzt durch Standard-Button. Schließen des Dialogs über Skript
- *   (Bugfix bei Verwendung von MD-Adapter Dialog)
- * 
- * Changelog 29.05.2020
- * - Steuerung des Dialog Widgets aus "Material Design Adapter" über State "javascript.0.Timer." + path + ".MaterialDialogWidgetOpen"
- * - Meldung bei fehlerhaften Bedingungen in PopUp
- *   -> Bei manuellem Update, Widgets "Berechnete Uhrzeit" und "ErrorMsg" aus Export übernehmen
- * 
- * Changelog 26.04.2020
- * - Minütliches Flackern der nächsten Timer abgestellt. Nur noch bei Änderungen gibts ein Flackern
- * - Bedingungen werden während der Eingabe ausgewertet und farblich im Editor hervorgehoben (Danke an HelmutS)
- * - Wenn Bedingungen leer oder fehlerhaft sind, wird das PopUp-Fenster nicht geschlossen. Log wird ausgegeben.
- * 
- * Changelog 15.04.2020
- * - PopUp-Editor ohne zusätzliche PNGs für Tage, rein als HTML-Button (siehe Screenshot)
- * - Funktionen innerhalb Tabelle können nun wahlweise mit Einfach-Klick statt Doppelklick ausgeführt werden
- *   (außer in Spalte "Device", diese Spalte dient als Haupt-Markierung für ADD/DEL, hier wird immer mit Doppelklick der Editor geöffnet)
- *   Neue Variable "oneClick" im Variablen-Bereich hinzugefügt (Default: oneClick = false)
- * - Neue Variablen müssen ab dieser Version bei einem manuellen Update nicht zwingend übernommen werden!
- *   Falls neue Variablen im oberen Bereich nicht existieren, wird der Default-Wert der neuen Variable angenommen.
- *   So soll sichergestellt werden, dass neue Funktionen die Funktionsweise älterer Versionen nicht beeinflusst  
- * 
- * Changelog 29.03.2020 v2
- * - Sollwerte können über Variablen-Feld oben einfacher angepasst werden
- * - Zusätzlich zwei Variablen im oberen Feld: "sollDropDownBool" und "sollWertMapping"
- * 
- * Changelog 29.03.2020
- * - Einzelne Aktive Background-Timer aus "Timer merken" können vorzeitig über Doppelklick auf die Bedingungszahl gelöscht werden
- * - Das Löschen aller aktiven Background-Timer kann über ein Doppelklick auf Tabellen-Überschrift "Bed" oder
- *   separat über das neue State "javascript.0.Timer.Devices.ResetBackgroundTimers" durchgeführt werden.
- * 
- * Changelog 26.03.2020
- * - Bugfix für font-size der Tabelle (wurde zuvor nicht korrekt übernommen)
- * - Gruppenzuordnungen unterteilt in "Zeiten" und "Bedingungen"
- * - Funktion "Timer merken" hinzugefügt:
- *   Timer wird gemerkt für den Fall dass die Bedingungen erst nach Trigger-Uhrzeit "true" werden.
- *   Timer werden aus der "Merkliste" vorzeitig gelöscht, falls sich die Ziel Objekt-ID anderweitig ändert
- *   oder der nächste Timer des Devices aktiviert wird.
- * - "javascript.0.Timer.Devices.Editor.DropDownNr" wird seit Touch-Bedienung nicht mehr benötigt. Kann gelöscht werden.
- * 
- * Changelog 03.02.2020
- * - Bugfix Gruppenzuordnung
- * 
- * Changelog 30.01.2020
- * - Optik PopUp für Gruppenzuordnung angepasst
- * - Namen der Gruppen im Skript nach oben gesetzt, für bessere Anpassung
- * 
- * Changelog 26.01.2020
- * - Timer werden Gruppen zugeordnet (aktuell statisch bis zu 10 Gruppen möglich)
- * - Änderungen über alle Timer einer Gruppe verteilen möglich
- * - Gruppennummer kann optional in Tabelle angezeigt werden
- * - Neue Spalte mit Symbolen (Aktiv-Status) anzeigbar und darüber auch manipulierbar (Doppelklick)
- * - Hinweis: Entweder Symbole oder Timer-Nummer muss angezeigt werden um Timer über Doppelklick zu aktivieren/deaktivieren
- * - Schriftgröße über Variable "fontSize" änderbar
- * - HTML-Code-Generierung aufgeräumt
- * - PopUp mit DropDown für Gruppenzuordnung erweitert
- * 
- * Changelog 24.01.2020
- * - Bugfix bzgl. Doppelklick zum Editieren und Aktivieren/Deaktivieren der einzelnen Timer
- * 
- * Changelog 19.01.2020
- * - Auswahl des Timers direkt über Tabelle (onclick event)
- * - Edit mit Doppelklick Gerät oder Ist-Zeit (dblclick event)
- * - Aktivieren/Deaktivieren des Timers über Doppelklick auf Timer-Nummer
- * - DropDown in VIS zu Filter umgestellt, default = kein Filter (DropDown auch löschbar!)
- * - Filter bei Split-Darstellung ohne Funktion
- * 
- * Changelog 15.09.2019
- * - Sollwerte in PopUp werden je nach Device mit An/Aus oder Zahlenwerte befüllt
- *   PopUp wurde entsprechend angepasst
- * - Einführung neuer Variable logPraefix
- * 
- * Changelog 14.09.2019
- * - Bugfix bei Anzeige NextTimer
- * - Weniger Fehlerausgaben bei erstem Start des Skripts
- * 
- * Changelog 08.09.2019
- * - Minuten Incremente in PopUp Editor über Variable steuerbar
- * 
- * Changelog 07.09.2019
- * - Logausgabe wenn Timer auslöst wenn stdLog oder debugLog = true ist.
- * 
- * Changelog 29.08.2019
- * - Ein neuer Timer wird auf Basis des zuletzt angewählten Timers erstellt (bezieht sich ausschließlich auf die Nummer!)
- * 
- * Changelog 29.08.2019
- * - Änderung von Bedingungen werden direkt bei Änderung getriggert (ohne minütliches Cron)
- * - Hauptpfad des Timers variabel umstellbar ohne Suchen/Ersetzen
- * - Zukünftige Timer werden in States "javascript.0.Timer. + path + .NextDevice(s)" ausgegeben
- * 
- * Changelog 28.07.2019
- * - einige Konsole Ausgaben mit switch debugLog bzw stdLog versehen
- * - Reihenfolge in Tabelle über Reihenfolge in "Timer.Devices.DropDownDevice" änderbar ("Timer.Devices.Editor.DropDownDevice" kann gelöscht werden)
- * 
- */
 
 /* ####################################################################### */
 
@@ -308,6 +159,9 @@ if (typeof condStyle === 'undefined') var condStyle = `[class*="timer-select-css
                                                         background-repeat: no-repeat, repeat;background-position: right .7em top 50%, 0 0;background-size: .65em auto, 100%;}`;
 if (typeof withHeader === 'undefined') var withHeader = true;
 if (typeof mainTableAsTable === 'undefined') var mainTableAsTable = true;
+if (typeof getDeviceNameMode === 'undefined') var getDeviceNameMode = 1;
+if (typeof getConditionNameMode === 'undefined') var getConditionNameMode = 1;
+
 
 
 sollDropDown = sollDropDown + ";Reset";
@@ -1886,7 +1740,7 @@ function buildTableArray() {
             }
             tabelle.push({
                 "Geraet"    : key,
-				"GeraetButtonCode" : getButtonCode(key + "~" + j + "~dev", key, "white"),
+		"GeraetButtonCode" : getButtonCode(key + "~" + j + "~dev", key, "white"),
                 "Nr"        : j, 
                 "Aktiv"     : tempJsonNr.Aktiv,
 				"IconButtonCode" : getSwitchButtonCode(key + "~" + j + "~symb", ( tempJsonNr.Aktiv ? symbEnab : symbDisab ), ( tempJsonNr.Aktiv ? "green"  : "red" ) ),

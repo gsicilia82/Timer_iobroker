@@ -152,7 +152,9 @@ Der Sollwert aus der VIS wird immer in `sollWertMapping` gesucht. Wird ein Treff
 
 ## Erweiterungen MDCSS_v2
 
-### Der Dank für die folgenden Erweiterungen in Bezug auf Uhulas MDCSS V2 geht an jpgorganizer.
+### Der Dank für die folgenden Erweiterungen in Bezug auf Uhulas MDCSS V2 geht an jpgorganizer:
+
+* abc
 
 
 
