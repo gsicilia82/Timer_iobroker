@@ -37,6 +37,7 @@ var showValues = true;
 
 // Timer-Nr und/oder Symbol anzeigen? (true = Sichtbar)
 // Mindestens eine Spalte muss true sein, sonst wird Timer-Nummer angezeigt.
+// (Es werden beide Spalten angezeigt, wenn Ansicht gefiltert wird oder "splitHTML == true" ist)
 var showTimerNr = true;
 var showSymbol = true;
 
@@ -62,7 +63,6 @@ var sollWertMapping = {"Auf": 100, "Ab": 0, "An": true, "Aus": false}
 var grpNames = "A;B;C;D;E;F;G;H;I;J";
 
 // Funktionen in Tabelle mit Einfach-Klick (= true) oder Doppel-Klick (= false) ausführen?
-// default: oneClick = false
 var oneClick = true;
 
 // Minimaler Zeitversatz zwischen Ansteuerung der Geräte (in Millisekunden)
@@ -85,174 +85,27 @@ var condStyle = `[class*="timer-select-css"] {display: block;font-weight: 700;co
 // Main Tabelle mit Header anzeigen?
 var withHeader = true;
 
+// Umschalten der Tabellen-Optik über Klasse
+// Uhula CSS-v1: "mdui-table-card" oder "mdui-table-tile"
+var toggleClass = "mdui-table-card";
+
 /* ####################################################################### */
 /* #### BEI MANUELLEM UPDATE, SKRIPT UNTERHALB DIESER ZEILE ERSETZEN! #### */
 
 /**
  * * Weitere Infos: https://forum.iobroker.net/topic/23346/vorlage-variable-zeitsteuerung-mit-vis-editor
- * Autor: Giuseppe Sicilia (Forum: GiuseppeS)
+ * * Oder: https://github.com/gsicilia82/Timer_iobroker
+ * * Autor: GiuseppeS / gsicilia82
+ * 
+ * Changelog v1.3.2 20.12.2020 (Skript)
+ * - Bugfix: Wenn bei den Bedingungen Strings als Vergleichswerte eingegeben werden müssen, können "" oder '' weggelassen werden!
+ * 
+ * Changelog v1.3.1 06.12.2020 (Skript)
+ * - Steuerung über Buttons optimiert, wenn Device-Name nicht angezeigt wird (bei splitHTML==true oder gefilterte Ansicht)
  * 
  * Changelog v1.2.1 30.11.2020 (Skript)
  * - Bugfix: Updates der IDs von Bedingungen funktioniert nun ohne Fehlermeldung
  * - Lange String Passagen durch Backtick Strings ersetzt (Code besser zu lesen)
- * 
- * Changelog v1.2.0 22.11.2020 (Skript)
- * - Offsets können nun auch größer 59 Minuten gewählt werden
- * - Bugfix: Es wurden unnötige States unter Timer.Devices.States.x erstellt
- * 
- * Changelog v1.1.0 20.11.2020 (Skript + VIS(optional)
- * - Bugfix bei der Scroll-Eigenschaft der Bedingungen im Editor
- * - Widget-ID des EDIT-Buttons muss oben im Skript nicht mehr angegeben werden.
- *   Widget-ID wird nun gefunden: Dafür muss im EDIT-Widget unter CSS-Klasse der Eintrag "dialogIdentifier" (ohne "") ergänzt werden.
- *   !!! Änderung muss bei Update von bestehender Version nicht durchgeführt werden. Abwärtskompatibilität ist gegeben !!!
- *   
- * Changelog v1.0.0 19.11.2020 (Skript)
- * - Auto-Scroll innerhalb VIS Haupttabelle nun ohne Flackern umgesetzt
- * - Aktualisierte States werden in Skript übernommen, wenn in Aufzählungen (Devices und/oder Conditions) gleichnamige Namen mit veränderten ioBroker States erkannt werden
- *  
- * Changelog 18.10.2020 (Skript)
- * - Scroll-Positionen von Main-Tabelle und Editor-Bedingungen werden gespeichert
- * - Header der Main-Tabelle können über optionale Variable "withHeader" deaktiviert werden
- * 
- * Changelog 11.10.2020 (Editor-View)
- * - Bugfix bei Buttons Mo - Do, Ursache weiterhin unklar aber nun fehlerfrei
- * 
- * Changelog 04.10.2020 (Skript)
- * - HTML-Style für Bedingungen in den Bereich der Variablen integriert (var condStyle = optional)
- * - Timing zur HTML-Erstellung der Editor-Bedingungen korrigiert
- * - Bugfix: gemerkte Timer im Hintergrund, werden in jedem Fall durch nachfolgende Timer gelöscht
- * 
- * Changelog 09.08.2020 (Skript)
- * - Verschiedene Bugs behoben
- * 
- * Changelog 08.08.2020 (Skript + Editor-View)
- * - Anzahl Bedingungen von 3 auf 9 erweitert (falls noch mehr benötigt ist es simpel/individuell erweiterbar)
- * - Bedingungen werden in Editor-View als HTML-Tabelle angezeigt
- * - Im Editor-View wird nun ENTWEDER Zeile "Zeiteingabe" ODER "Offset" angezeigt.
- * - Timer-JSON und EDITOR-States werden mit Skript-Update ergänzt
- * 
- * Changelog 18.07.2020 (Skript)
- * - Bugfixes: Falls Random-Minuten auch für gemerkte Timer genutzt wird (bgTimerWithRandom = true), wird eine doppelte AUsführung verhindert
- * - Der Fall "Random-Minuten für gemerkte Timer" wird nun vollumfänglich unterstützt; d.h. der Countdown wird unterbrochen im Falle von
- *   "Reset durch nachfolgenden Timer" oder falls das Ziel-Gerät anderweitig verändert wurde. 
- *
- * Changelog 16.07.2020 (Skript + Main-View + Editor-View)
- * - Selbes Editor-View (PopUp) für mehrer Timer nutzbar!
- * - Neue Variable definiert: bgTimerWithRandom (optional) => Random-Minuten auch für gemerkte Timer nutzen?
- * - Instanz wird im Skript dynamisch gesetzt. Skript in Javascript-Instanz ">0" lauffähig!
- * - Sollwert-DropDown wurde mit "Reset" erweitert. Im Hintergrund befindliche Timer (gemerkt) können durch diese
- *   Sollwert-Vorgabe im nachfolgenden Timer gelöscht werden. Gerät wird nicht aktiv mit Sollwert "Reset" gesteuert. 
- * 
- * Changelog 30.06.2020 (Skript)
- * - Codeoptimierung, Error-Handling wenn Buttons nicht gemäß Standard genutzt werden
- * - Bugfix: Alle gemerkten Timer werden nun ausgeführt, wenn Bedingungen nächträglich erfüllt werden.
- * 
- * Changelog 20.06.2020 (Skript)
- * - State "javascript.0.Timer.AtHomeSimul.TableJSON" gelöscht, wird nicht mehr benötigt.
- * - Bugfix: Bei Tabellen mit modifizierter Reihenfolge funktioniert nun auch die Filterung korrekt!
- * 
- * Changelog 17.06.2020 (Skript)
- * - Steuerung der Geräte mit Versatz möglich. Neue (optionale) Variable "sendWithOffset"
- * 
- * Changelog 30.05.2020 (Skript & VIS)
- * - Bugfix "ErrorMessage" im PopUp
- * - Neue Variable im Edit-Bereich: logSuffix
- *   Kann genutzt werden, um Log-Ausgabe noch flexibler anzupassen (Ist für manuelles Update nicht zwingend neu anzulegen)
- * 
- * Changelog 29.05.2020 v2
- * - DialogBox Button "Abbrechen" ersetzt durch Standard-Button. Schließen des Dialogs über Skript
- *   (Bugfix bei Verwendung von MD-Adapter Dialog)
- * 
- * Changelog 29.05.2020
- * - Steuerung des Dialog Widgets aus "Material Design Adapter" über State "javascript.0.Timer." + path + ".MaterialDialogWidgetOpen"
- * - Meldung bei fehlerhaften Bedingungen in PopUp
- *   -> Bei manuellem Update, Widgets "Berechnete Uhrzeit" und "ErrorMsg" aus Export übernehmen
- * 
- * Changelog 26.04.2020
- * - Minütliches Flackern der nächsten Timer abgestellt. Nur noch bei Änderungen gibts ein Flackern
- * - Bedingungen werden während der Eingabe ausgewertet und farblich im Editor hervorgehoben (Danke an HelmutS)
- * - Wenn Bedingungen leer oder fehlerhaft sind, wird das PopUp-Fenster nicht geschlossen. Log wird ausgegeben.
- * 
- * Changelog 15.04.2020
- * - PopUp-Editor ohne zusätzliche PNGs für Tage, rein als HTML-Button (siehe Screenshot)
- * - Funktionen innerhalb Tabelle können nun wahlweise mit Einfach-Klick statt Doppelklick ausgeführt werden
- *   (außer in Spalte "Device", diese Spalte dient als Haupt-Markierung für ADD/DEL, hier wird immer mit Doppelklick der Editor geöffnet)
- *   Neue Variable "oneClick" im Variablen-Bereich hinzugefügt (Default: oneClick = false)
- * - Neue Variablen müssen ab dieser Version bei einem manuellen Update nicht zwingend übernommen werden!
- *   Falls neue Variablen im oberen Bereich nicht existieren, wird der Default-Wert der neuen Variable angenommen.
- *   So soll sichergestellt werden, dass neue Funktionen die Funktionsweise älterer Versionen nicht beeinflusst  
- * 
- * Changelog 29.03.2020 v2
- * - Sollwerte können über Variablen-Feld oben einfacher angepasst werden
- * - Zusätzlich zwei Variablen im oberen Feld: "sollDropDownBool" und "sollWertMapping"
- * 
- * Changelog 29.03.2020
- * - Einzelne Aktive Background-Timer aus "Timer merken" können vorzeitig über Doppelklick auf die Bedingungszahl gelöscht werden
- * - Das Löschen aller aktiven Background-Timer kann über ein Doppelklick auf Tabellen-Überschrift "Bed" oder
- *   separat über das neue State "javascript.0.Timer.Devices.ResetBackgroundTimers" durchgeführt werden.
- * 
- * Changelog 26.03.2020
- * - Bugfix für font-size der Tabelle (wurde zuvor nicht korrekt übernommen)
- * - Gruppenzuordnungen unterteilt in "Zeiten" und "Bedingungen"
- * - Funktion "Timer merken" hinzugefügt:
- *   Timer wird gemerkt für den Fall dass die Bedingungen erst nach Trigger-Uhrzeit "true" werden.
- *   Timer werden aus der "Merkliste" vorzeitig gelöscht, falls sich die Ziel Objekt-ID anderweitig ändert
- *   oder der nächste Timer des Devices aktiviert wird.
- * - "javascript.0.Timer.Devices.Editor.DropDownNr" wird seit Touch-Bedienung nicht mehr benötigt. Kann gelöscht werden.
- * 
- * Changelog 03.02.2020
- * - Bugfix Gruppenzuordnung
- * 
- * Changelog 30.01.2020
- * - Optik PopUp für Gruppenzuordnung angepasst
- * - Namen der Gruppen im Skript nach oben gesetzt, für bessere Anpassung
- * 
- * Changelog 26.01.2020
- * - Timer werden Gruppen zugeordnet (aktuell statisch bis zu 10 Gruppen möglich)
- * - Änderungen über alle Timer einer Gruppe verteilen möglich
- * - Gruppennummer kann optional in Tabelle angezeigt werden
- * - Neue Spalte mit Symbolen (Aktiv-Status) anzeigbar und darüber auch manipulierbar (Doppelklick)
- * - Hinweis: Entweder Symbole oder Timer-Nummer muss angezeigt werden um Timer über Doppelklick zu aktivieren/deaktivieren
- * - Schriftgröße über Variable "fontSize" änderbar
- * - HTML-Code-Generierung aufgeräumt
- * - PopUp mit DropDown für Gruppenzuordnung erweitert
- * 
- * Changelog 24.01.2020
- * - Bugfix bzgl. Doppelklick zum Editieren und Aktivieren/Deaktivieren der einzelnen Timer
- * 
- * Changelog 19.01.2020
- * - Auswahl des Timers direkt über Tabelle (onclick event)
- * - Edit mit Doppelklick Gerät oder Ist-Zeit (dblclick event)
- * - Aktivieren/Deaktivieren des Timers über Doppelklick auf Timer-Nummer
- * - DropDown in VIS zu Filter umgestellt, default = kein Filter (DropDown auch löschbar!)
- * - Filter bei Split-Darstellung ohne Funktion
- * 
- * Changelog 15.09.2019
- * - Sollwerte in PopUp werden je nach Device mit An/Aus oder Zahlenwerte befüllt
- *   PopUp wurde entsprechend angepasst
- * - Einführung neuer Variable logPraefix
- * 
- * Changelog 14.09.2019
- * - Bugfix bei Anzeige NextTimer
- * - Weniger Fehlerausgaben bei erstem Start des Skripts
- * 
- * Changelog 08.09.2019
- * - Minuten Incremente in PopUp Editor über Variable steuerbar
- * 
- * Changelog 07.09.2019
- * - Logausgabe wenn Timer auslöst wenn stdLog oder debugLog = true ist.
- * 
- * Changelog 29.08.2019
- * - Ein neuer Timer wird auf Basis des zuletzt angewählten Timers erstellt (bezieht sich ausschließlich auf die Nummer!)
- * 
- * Changelog 29.08.2019
- * - Änderung von Bedingungen werden direkt bei Änderung getriggert (ohne minütliches Cron)
- * - Hauptpfad des Timers variabel umstellbar ohne Suchen/Ersetzen
- * - Zukünftige Timer werden in States "javascript.0.Timer. + path + .NextDevice(s)" ausgegeben
- * 
- * Changelog 28.07.2019
- * - einige Konsole Ausgaben mit switch debugLog bzw stdLog versehen
- * - Reihenfolge in Tabelle über Reihenfolge in "Timer.Devices.DropDownDevice" änderbar ("Timer.Devices.Editor.DropDownDevice" kann gelöscht werden)
  * 
  */
 
@@ -279,6 +132,7 @@ if (typeof condStyle === 'undefined') var condStyle = `[class*="timer-select-css
                                                         -moz-appearance: none;-webkit-appearance: none;appearance: none;background-color: rgba(0,0,0,0.1);
                                                         background-repeat: no-repeat, repeat;background-position: right .7em top 50%, 0 0;background-size: .65em auto, 100%;}`;
 if (typeof withHeader === 'undefined') var withHeader = true;
+if (typeof toggleClass === 'undefined') var toggleClass = "";
 
 
 sollDropDown = sollDropDown + ";Reset";
@@ -747,6 +601,7 @@ function delFocusOnTimer(option) {
 
 // Hilfsfunktion für Select-HTML in Editor
 function getSelector({ selectClass, defOption, listOptions, selectedOption, condNr, column }){
+    // "<" and ">" are html tags, therefore mapping is required!
     let map = {"==": "==", "!=": "!=", "<=": "&#60;=", "<": "&#60;", ">": "&#62;", ">=": "&#62;="};
     //if (debugLog) console.log("Class: " + selectClass + " | Default: " + defOption + " | Selected: " + selectedOption + " | CondNr: " + condNr + " | Column: " + column);
     let html = '<select class="' + selectClass + '" onchange="setOnEdit' + path + '(this.value)">';
@@ -1159,12 +1014,27 @@ function activateEditorTrigger(){
         var ConditionJSON = JSON.parse(getState("javascript." + instance + ".Timer.Editor.ConditionJSON").val);
         var condNr = obj.id.split(".").pop().match(/\d+/)[0];
         var CondState = getState("javascript." + instance + ".Timer.Editor.Cond" + condNr + "State").val
+        if (CondState == "") return
         var CondComp = getState("javascript." + instance + ".Timer.Editor.Cond" + condNr + "Comp").val
         var CondValue = getState("javascript." + instance + ".Timer.Editor.Cond" + condNr + "Value").val
-        var strCond = "getState(\"" + ConditionJSON[CondState] + "\").val " + CondComp + " " + CondValue
+        var CondType = getObject(ConditionJSON[CondState]).common.type;
+        CondValue = CondValue.replace(/['"]+/g, ''); // Eliminate Quotes in case they are set in Editor
+        var strCond = "";
+        if (CondType == "string" || CondType == "mixed") {
+            strCond = `getState("${ConditionJSON[CondState]}").val ${CondComp} "${CondValue}"`;
+        } else {
+            strCond = `getState("${ConditionJSON[CondState]}").val ${CondComp} ${CondValue}`;
+        }
+        console.log(strCond);
         setState("javascript." + instance + ".Timer.Editor.Condition" + condNr, strCond);
         if (CondState != "" && CondComp != "" && CondValue != "") {
-            setState("javascript." + instance + ".Timer.Editor.Cond" + condNr + "Result", eval(strCond));
+            try {
+                setState("javascript." + instance + ".Timer.Editor.Cond" + condNr + "Result", eval(strCond));
+            } catch (e){
+                // Beispiel für ignorierbare Fehler:
+                // Wenn Bedingung voll gesetzt war und der Vergleichs-State von "string" zu "boolean" oder "number" gewechselt wird,
+                // wird zunächst direkt versucht neu auszuwerten -> führt zu Fehler: z.B getState("adapter.0.boolState").val = "on"
+            }
         }
     });
 
@@ -1319,7 +1189,7 @@ function activateEditorTrigger(){
                                 if (i <= TimerJSON[device][nr].ConditionsNr){
                                     TimerJSON[device][nr].Conditions[i].ConditionStr = getState("javascript." + instance + ".Timer.Editor.Condition" + i).val; 
                                     TimerJSON[device][nr].Conditions[i].CondState = getState("javascript." + instance + ".Timer.Editor.Cond" + i + "State").val; 
-                                    TimerJSON[device][nr].Conditions[i].CondComp = getState("javascript." + instance + ".Timer.Editor.Cond" + i + "Comp").val; 
+                                    TimerJSON[device][nr].Conditions[i].CondComp = getState("javascript." + instance + ".Timer.Editor.Cond" + i + "Comp").val;
                                     TimerJSON[device][nr].Conditions[i].CondValue = getState("javascript." + instance + ".Timer.Editor.Cond" + i + "Value").val; 
                                 } else {
                                     TimerJSON[device][nr].Conditions[i].ConditionStr = ""; 
@@ -1799,6 +1669,11 @@ function getFakeButtonCode(buttonText){
     return `<button style="border:none; background-color:transparent; color:white; font-size:1.0em; text-align:left" >${buttonText}</button>`;
 }
 
+// Header Button to switch Design by Class-Toggle
+function getDesignButton(buttonText){
+    return `<button style="border:none; background-color:transparent; color:white; font-size:1.0em; text-align:left"
+            ${ oneClick ? ` onclick="switchDesign${path}()"` : ` ondblclick="switchDesign${path}()` } >${buttonText}</button>`;
+}
 
 function jsonToHtml(tabelle, withDevice) {
   
@@ -1833,6 +1708,18 @@ function jsonToHtml(tabelle, withDevice) {
             .timer-button-white { border:none; background-color:transparent; color:white;   font-size:1.0em; text-align:left; }
             .timer-button-red   { border:none; background-color:transparent; color:red;     font-size:1.0em; text-align:left; }
             .timer-button-green { border:none; background-color:transparent; color:#00FF7F; font-size:1.0em; text-align:left; }
+            
+            .timer-remember-wiggle { animation: timer-remember-wiggle-ani 1.5s linear infinite; }
+            
+            @keyframes timer-remember-wiggle-ani {
+                0%, 7% { transform: rotateZ(0); }
+                15% { transform: rotateZ(-15deg); }
+                20% { transform: rotateZ(10deg); }
+                25% { transform: rotateZ(-10deg); }
+                30% { transform: rotateZ(6deg); }
+                35% { transform: rotateZ(-4deg); }
+                40%, 100% { transform: rotateZ(0); }
+            }
         </style>`;
 
     // Prüfen ob aktive Background-Timer existieren, damit "Bed" in Überschrift entsprechend dargestellt werden kann
@@ -1846,9 +1733,10 @@ function jsonToHtml(tabelle, withDevice) {
     html += "<table id=tableMain-" + path + " style='font-size:" + fontSize + "em;width:100%;'>\n";
 
     if (withHeader) html += "<thead>\n<tr>\n"
-         + ( withDevice  ?  "<th style='text-align:left;'>" + getFakeButtonCode("Device") + "</th>\n"  : "" ) /* Wenn splitHTML true ist, dann keine Spalte "Device" */
-         + ( showTimerNr ?  "<th style='text-align:left;'>" + getFakeButtonCode("Nr") + "</th>\n"      : "" )
-         + ( showSymbol  ?  "<th style='text-align:left;'>" + getFakeButtonCode("Aktiv") + "</th>\n"   : "" )
+         + ( withDevice  ?  "<th style='text-align:left;'>" + getDesignButton("Device") + "</th>\n"  : "" ) /* Wenn "splitHTML==true" oder Ansicht gefiltert wird, dann keine Spalte "Device" */
+         + ( !withDevice  ?  "<th style='text-align:left;'>" + getDesignButton("Nr") + "</th>\n"  : "" )    /* Wenn Device ausgeblendet ist, dann dient Timer-Nummer als alternative Steuerung */
+         + ( showTimerNr && withDevice ?  "<th style='text-align:left;'>" + getFakeButtonCode("Nr") + "</th>\n"  : "" )
+         + ( showSymbol || !withDevice ?  "<th style='text-align:left;'>" + getFakeButtonCode("Aktiv") + "</th>\n"   : "" )
          /* Nachfolgend die Darstellung von "Bed" in zwei Zeilen zwecks lesbarkeit */
          + ( !backgroundTimerExists  ?  "<th style='text-align:left;'>" + getFakeButtonCode("Bed") + "</th>\n"   : "" )
          + ( backgroundTimerExists  ?  "<th class=timer-remember-red-blink style='text-align:left;'>" + getButtonCode("all~0~cond", "Bed", "red") + "</th>\n"   : "" )
@@ -1868,8 +1756,9 @@ function jsonToHtml(tabelle, withDevice) {
 
     	html += "<tr>\n"
               + ( withDevice  ? "<td>" + getButtonCode(tabelle[i].Geraet + "~" + tabelle[i].Nr + "~dev", tabelle[i].Geraet, "white") + "</td>\n" : "" )
-              + ( showTimerNr ? "<td>" + getSwitchButtonCode(tabelle[i].Geraet + "~" + tabelle[i].Nr + "~digit", tabelle[i].Nr, ( tabelle[i].Aktiv ? "green"  : "red" ) ) + "</td>\n" : "" )
-              + ( showSymbol  ? "<td>" + getSwitchButtonCode(tabelle[i].Geraet + "~" + tabelle[i].Nr + "~symb", ( tabelle[i].Aktiv ? symbEnab : symbDisab ), ( tabelle[i].Aktiv ? "green"  : "red" ) ) + "</td>\n" : "" )
+              + ( !withDevice  ? "<td>" + getButtonCode(tabelle[i].Geraet + "~" + tabelle[i].Nr + "~dev", tabelle[i].Nr, "white") + "</td>\n" : "" )
+              + ( showTimerNr && withDevice ? "<td>" + getSwitchButtonCode(tabelle[i].Geraet + "~" + tabelle[i].Nr + "~digit", tabelle[i].Nr, ( tabelle[i].Aktiv ? "green"  : "red" ) ) + "</td>\n" : "" )
+              + ( showSymbol || !withDevice ? "<td>" + getSwitchButtonCode(tabelle[i].Geraet + "~" + tabelle[i].Nr + "~symb", ( tabelle[i].Aktiv ? symbEnab : symbDisab ), ( tabelle[i].Aktiv ? "green"  : "red" ) ) + "</td>\n" : "" )
               + ( tabelle[i].CondNr > 0 ? "<td " + tabelle[i].Class + ">" + getButtonCode(tabelle[i].Geraet + "~" + tabelle[i].Nr + "~cond", "*" + tabelle[i].CondNr, ( tabelle[i].CondTrue ? "green" : "red" ) ) + "</td>\n" : "<td> </td>\n" )
               + ( showGroupNr ? "<td>" + tabelle[i].Gruppe + "</td>" : "" )
               + "<td>" + getButtonCode(tabelle[i].Geraet + "~" + tabelle[i].Nr + "~time", tabelle[i].Zeit, "white") + "</td>\n"
@@ -1891,6 +1780,7 @@ function jsonToHtml(tabelle, withDevice) {
              var objID = "javascript.${instance}.Timer.${path}.PopUpWidgetID";
              servConn.setState(objID, targetEditorID);
           }, 1000 )
+
           function setOnClick${path}(val) {
              var objID = "javascript.${instance}.Timer.${path}.clickTarget";
              servConn.setState(objID, val);
@@ -1900,6 +1790,7 @@ function jsonToHtml(tabelle, withDevice) {
              var objID = "javascript.${instance}.Timer.${path}.dblClickTarget";
              servConn.setState(objID, val);
           }
+          
           function switchOnClick${path}(val, recursiveCall=false){
              var keys = val.split("~")
              var caller = keys.pop();
@@ -1918,6 +1809,11 @@ function jsonToHtml(tabelle, withDevice) {
                 setOnClick${path}(val)
              }
           }
+
+          function switchDesign${path}(){
+              $("#tableMain-${path}").closest(".vis-tpl-basic-HTML").toggleClass("${toggleClass}");
+          }
+
           function switchOnDblClick${path}(val, recursiveCall=false){
              var keys = val.split("~")
              var caller = keys.pop();

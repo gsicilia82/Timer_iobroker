@@ -10,8 +10,6 @@ Variable Zeitsteuerung mit VIS Editor und schneller Einrichtung
 * [Weitere Infos](#weitere-infos)
 * [Changelog](#changelog)
 
-
-
 ## Hauptansicht Timer
 
 ![MainView](./ReadMe_Images/MainView.png)
@@ -152,6 +150,10 @@ Der Sollwert aus der VIS wird immer in `sollWertMapping` gesucht. Wird ein Treff
 ***
 
 ## Changelog
+
+**Changelog v1.2.2 20.12.2020 (Skript)**
+
+* Bugfix: Wenn bei den Bedingungen Strings als Vergleichswerte eingegeben werden müssen, können "" oder '' weggelassen werden!
 
 **Changelog v1.2.1 30.11.2020 (Skript)**
 
