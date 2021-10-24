@@ -2,6 +2,13 @@
 
 Variable Zeitsteuerung mit VIS Editor und schneller Einrichtung
 
+Dies ist kein Adapter sondern ein Skript und zwei VIS Views
+
+Das Skript beinhaltet alle Funktionen, die benötigt werden. Einfach Inhalt kopieren und in iobroker ein neues JS Skript erstellen und Inhalt einfügen.
+Für die schönere Optik verwende ich die CSS Klassen von Uhula (noch v1.x). Einfach nach "iobroker Material Design" schauen. Falls ihr noch kein Projekt von Uhula übernommen habt: der letzte Stand seiner CSS-Klassen findet ihr auch unten im angehängten Zip-File. Den Inhalt einfach im VIS-Editor unter dem Hauptreiter "CSS" einfügen.
+
+Es gibt zwei Views, die importiert werden müssen. Zunächst die Hauptansicht und dann noch das PopUp-View für die Bearbeitung der Timer.
+
 * [Hauptansicht Timer](#hauptansicht-timer)
 * [Bedienung](#bedienung)
 * [PopUp Editor](#popup-editor)
@@ -59,13 +66,6 @@ Die Haupt-Tabelle mit den dargestellten Timern ist interaktiv:
   - durch manuelles Deaktivieren/Löschen über Doppelklick auf HTML-Tabelle:
     In Überschrift "Bed" löscht alle ausstehenden Timer, in einzelne Zeile auf die Bedingungen-Anzahl löscht einzeln. Doppelklick kann auf Einfach-Klick umgestellt werden, indem Variable `var oneClick` auf `true` gesetzt wird.
   - durch setzen des neu erstellten Button-States "javascript.0.Timer.Devices.ResetBackgroundTimers"
-
-***
-
-Das Skript beinhaltet alle Funktionen, die benötigt werden. Einfach Inhalt kopieren und in iobroker ein neues Skript erstellen und Inhalt einfügen.
-Für die schönere Optik verwende ich die CSS Klassen von Uhula (noch v1.x). Einfach nach "iobroker Material Design" schauen. Falls ihr noch kein Projekt von Uhula übernommen habt: der letzte Stand seiner CSS-Klassen findet ihr auch unten im angehängten Zip-File. Den Inhalt einfach im VIS-Editor unter dem Hauptreiter "CSS" einfügen.
-
-Es gibt zwei Views, die importiert werden müssen. Zunächst die Hauptansicht und dann noch das PopUp-View für die Bearbeitung der Timer.
 
 ***
 
