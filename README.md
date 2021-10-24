@@ -2,7 +2,7 @@
 
 Variable Zeitsteuerung mit VIS Editor und schneller Einrichtung
 
-<u>Dies ist kein Adapter sondern ein Skript und zwei VIS Views</u>
+Dies ist kein Adapter sondern ein Skript und zwei VIS Views
 
 Das Skript beinhaltet alle Funktionen, die benötigt werden. Einfach Inhalt kopieren und in iobroker ein neues JS Skript erstellen und Inhalt einfügen.
 Für die schönere Optik verwende ich die CSS Klassen von Uhula (noch v1.x). Einfach nach "iobroker Material Design" schauen. Falls ihr noch kein Projekt von Uhula übernommen habt: der letzte Stand seiner CSS-Klassen findet ihr auch unten im angehängten Zip-File. Den Inhalt einfach im VIS-Editor unter dem Hauptreiter "CSS" einfügen.
