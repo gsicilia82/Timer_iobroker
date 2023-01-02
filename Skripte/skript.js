@@ -97,6 +97,9 @@ var toggleClass = "mdui-table-card";
  * * Oder: https://github.com/gsicilia82/Timer_iobroker
  * * Autor: GiuseppeS / gsicilia82
  * 
+ * Changelog v1.3.3 02.01.2023 (Skript)
+ * - Wenn Aufzählungen nicht existieren oder Hauptaufzählung deviceEnum keine member hat, werden Fehler ausgegeben.
+ * 
  * Changelog v1.3.2 20.12.2020 (Skript)
  * - Bugfix: Wenn bei den Bedingungen Strings als Vergleichswerte eingegeben werden müssen, können "" oder '' weggelassen werden!
  * 
@@ -111,9 +114,11 @@ var toggleClass = "mdui-table-card";
 
 /* ####################################################################### */
 
+var device_members;
+var condition_members;
 
-var device_members = getObject(deviceEnum).common.members;
-var condition_members = getObject(deviceCond).common.members;
+
+
 var TageJSON = {1: "Mo", 2: "Di", 3: "Mi", 4: "Do", 5: "Fr", 6: "Sa", 7: "So"};
 var dblClickBlocker = false
 var anzBedingungen = 9;
@@ -1425,6 +1430,27 @@ var DefaultInhalte = {
 };
 
 function main () {
+
+    try{
+        device_members = getObject(deviceEnum).common.members;
+    } catch (e){
+        console.error( `Error by reading members from enumeration '${deviceEnum}'!`);
+        return;
+    }
+
+    try{
+        condition_members = getObject(deviceCond).common.members;
+    } catch (e){
+        console.error( `Error by reading members from enumeration '${deviceCond}'!`);
+        return;
+    }
+
+    if ( device_members.length === 0){
+        console.error( `Enumeration '${deviceEnum}' has no members. Please add states to enumeration and start script again!`);
+        return;
+    }
+
+
     var dropDownListe = "";
     var devName;
     var TimerJSON = {};
@@ -1878,4 +1904,3 @@ function tableMain(delay) {
         }
     },delay);
 }
-
