@@ -97,6 +97,9 @@ var toggleClass = "mdui-table-card";
  * * Oder: https://github.com/gsicilia82/Timer_iobroker
  * * Autor: GiuseppeS / gsicilia82
  * 
+ * Changelog v1.3.4 04.01.2023 (Skript)
+ * - Bugfix: Aktivieren / Deaktivieren von Timern führte nicht zur Aktualisierung der Ansicht
+ * 
  * Changelog v1.3.3 02.01.2023 (Skript)
  * - Wenn Aufzählungen nicht existieren oder Hauptaufzählung deviceEnum keine member hat, werden Fehler ausgegeben.
  * 
@@ -770,16 +773,14 @@ function activateTrigger(){
 
     // One-Click Aktion aus Tabelle zur Auswahl des Timers
     on({id: "javascript." + instance + ".Timer." + path + ".clickTarget", change: "any"}, function (obj) {
-    	var value = obj.state.val;
-        var oldValue = obj.oldState.val;
 
         delFocusOnTimer(true);
 
-        if (debugLog) console.log("Klick aus Tabelle erkannt. Übergebener Wert: " + value);
+        if (debugLog) console.log("Klick aus Tabelle erkannt. Übergebener Wert: " + obj.state.val);
         
         setState("javascript." + instance + ".Timer.ActiveTable", path);
 
-        var tmp = value.split("~");
+        var tmp = obj.state.val.split("~");
         var btnSource = tmp[2]; // Button-Funktion wird eingelesen
 
         // States müssen gesetzt werden, damit die Buttons "Add" und "Del" einen Ziel-Timer haben
@@ -796,10 +797,12 @@ function activateTrigger(){
 
             if (btnSource == "digit" || btnSource == "symb"){ // Aktivieren/Deaktivieren des Timers
                 toggleActivation(tmp[0], parseInt(tmp[1]));
+                tableMain(2000);
             }
 
             if (btnSource == "cond"){ // Löschen der Timer im Hintergrund
                 resetBackgroundTimers(tmp[0]);
+                tableMain(2000);
             }
         }
     });
@@ -824,10 +827,12 @@ function activateTrigger(){
 
             if (btnSource == "digit" || btnSource == "symb"){ // Aktivieren/Deaktivieren des Timers
                 toggleActivation(tmp[0], parseInt(tmp[1]));
+                tableMain(2000);
             }
 
             if (btnSource == "cond"){ // Löschen der Timer im Hintergrund
                 resetBackgroundTimers(tmp[0]);
+                tableMain(2000);
             }
         }
     });
