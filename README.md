@@ -151,6 +151,10 @@ Der Sollwert aus der VIS wird immer in `sollWertMapping` gesucht. Wird ein Treff
 
 ## Changelog
 
+**Changelog v1.3.4 02.01.2023 (Skript)**
+
+ * Bugfix: Wenn Timer aktiviert/deaktiviert werden, wird nach 2 Sekunden die gesamte Ansicht aktualisiert. Bisher wurde die Gesamtansicht nicht aktualisiert; das führte zur Anzeige von aktiven Timern obwohl diese deaktiviert waren.
+
 **Changelog v1.3.3 02.01.2023 (Skript)**
 
  * Wenn Aufzählungen nicht existieren oder Hauptaufzählung deviceEnum keine member hat, werden Fehler ausgegeben und Skriptausführung gestoppt.
